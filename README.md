@@ -1,4 +1,4 @@
-# 🍃 YunWebmin - Restaurante Vegetariano
+# 🍃 YuWebmin - Restaurante Vegetariano
 
 Projeto desenvolvido para a disciplina de Projetos de Sistemas Web. O objetivo é criar uma plataforma digital para o restaurante vegetariano **Yuenmin**, otimizando a experiência do cliente ao oferecer um cardápio interativo, montagem de pratos personalizados e um sistema prático para pedidos e agendamento de retiradas.
 
