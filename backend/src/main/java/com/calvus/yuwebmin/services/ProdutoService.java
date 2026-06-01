@@ -7,7 +7,7 @@ import org.springframework.stereotype.Service;
 
 import com.calvus.yuwebmin.dtos.request.ProdutoRequestDTO;
 import com.calvus.yuwebmin.dtos.response.ProdutoResponseDTO;
-import com.calvus.yuwebmin.expections.ResourceNotFoundException;
+import com.calvus.yuwebmin.exceptions.ResourceNotFoundException;
 import com.calvus.yuwebmin.mappers.ProdutoMapper;
 import com.calvus.yuwebmin.models.Produto;
 import com.calvus.yuwebmin.repositories.ProdutoRepository;

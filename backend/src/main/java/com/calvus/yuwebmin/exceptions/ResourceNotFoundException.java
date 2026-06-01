@@ -1,4 +1,4 @@
-package com.calvus.yuwebmin.expections;
+package com.calvus.yuwebmin.exceptions;
 
 public class ResourceNotFoundException extends RuntimeException{
     public ResourceNotFoundException(String message){

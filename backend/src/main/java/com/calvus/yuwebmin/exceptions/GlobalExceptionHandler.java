@@ -1,4 +1,4 @@
-package com.calvus.yuwebmin.expections;
+package com.calvus.yuwebmin.exceptions;
 
 import java.time.LocalDateTime;
 import java.util.stream.Collectors;
