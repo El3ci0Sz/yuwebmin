@@ -8,6 +8,7 @@ import com.calvus.yuwebmin.dtos.request.ProdutoRequestDTO;
 import com.calvus.yuwebmin.dtos.response.ProdutoResponseDTO;
 import com.calvus.yuwebmin.services.ProdutoService;
 
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
 import java.net.URI;
@@ -33,8 +34,8 @@ public class ProdutoController {
     
     // CREATE
     @PostMapping
-    public ResponseEntity<ProdutoResponseDTO> createProduto(@RequestBody ProdutoRequestDTO requestDTO) {
-        ProdutoResponseDTO response = produtoService.createProduto(requestDTO);
+    public ResponseEntity<ProdutoResponseDTO> createProduto(@Valid @RequestBody ProdutoRequestDTO requestDTO) {
+        ProdutoResponseDTO response = produtoService.create(requestDTO);
         
         URI uri = ServletUriComponentsBuilder.fromCurrentRequest().path("/{id}").buildAndExpand(response.getId()).toUri();
         
@@ -44,7 +45,7 @@ public class ProdutoController {
     // READ (all)
     @GetMapping
     public ResponseEntity<List<ProdutoResponseDTO>> findAll() {
-        return ResponseEntity.ok(produtoService.listAll());
+        return ResponseEntity.ok(produtoService.findAll());
     }
 
     // READ (id)
@@ -55,7 +56,7 @@ public class ProdutoController {
     
     // UPDATE
     @PutMapping("/{id}")
-    public ResponseEntity<ProdutoResponseDTO> update(@PathVariable long id, @RequestBody ProdutoRequestDTO requestDTO) {
+    public ResponseEntity<ProdutoResponseDTO> update(@PathVariable long id,@Valid @RequestBody ProdutoRequestDTO requestDTO) {
 
         return ResponseEntity.ok(produtoService.updateOneProduto(id, requestDTO));
     }

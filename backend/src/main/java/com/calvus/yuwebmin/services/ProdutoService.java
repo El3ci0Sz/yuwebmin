@@ -22,7 +22,7 @@ public class ProdutoService{
     private final ProdutoMapper produtoMapper;
     
     // Criar novo produto
-   public ProdutoResponseDTO createProduto(ProdutoRequestDTO requestDTO) {
+   public ProdutoResponseDTO create(ProdutoRequestDTO requestDTO) {
 
        //Converte o request no formato do objeto Produto
        Produto produto = produtoMapper.toModel(requestDTO);
@@ -35,7 +35,7 @@ public class ProdutoService{
    } 
    
    // Listar todos os produtos existentes
-   public List<ProdutoResponseDTO> listAll() {
+   public List<ProdutoResponseDTO> findAll() {
        return produtoRepository.findAll().stream().map(produtoMapper::toResponseDTO).collect(Collectors.toList());
     
    }
