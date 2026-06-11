@@ -5,7 +5,6 @@ target/
 !**/src/test/**/target/
 
 bd/
-*.code-workspace
 
 ### STS ###
 .apt_generated
