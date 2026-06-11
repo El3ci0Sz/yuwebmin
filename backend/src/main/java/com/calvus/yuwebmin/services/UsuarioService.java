@@ -1,8 +1,7 @@
 package com.calvus.yuwebmin.services;
 
-import java.util.List;
-import java.util.stream.Collectors;
-
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Page;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -14,7 +13,7 @@ import com.calvus.yuwebmin.exceptions.ResourceNotFoundException;
 import com.calvus.yuwebmin.mappers.UsuarioMapper;
 import com.calvus.yuwebmin.models.Usuario;
 import com.calvus.yuwebmin.repositories.UsuarioRepository;
-import com.calvus.yuwebmin.utils.MensagensErro;
+import com.calvus.yuwebmin.utils.MensagensDeErro;
 
 import lombok.RequiredArgsConstructor;
 
@@ -27,7 +26,7 @@ public class UsuarioService {
 
     public UsuarioResponseDTO create(UsuarioRequestDTO requestDTO) {
         if (usuarioRepository.findByEmail(requestDTO.getEmail()).isPresent()) {
-            throw new RegraDeNegocioException(MensagensErro.EMAIL_DUPLICADO);
+            throw new RegraDeNegocioException(MensagensDeErro.EMAIL_DUPLICADO);
         }
 
         Usuario usuario = usuarioMapper.toModel(requestDTO);
@@ -43,8 +42,8 @@ public class UsuarioService {
         return usuarioMapper.toResponseDTO(usuarioRepository.save(usuario));
     }
 
-    public List<UsuarioResponseDTO> findAll() {
-        return usuarioRepository.findAll().stream().map(usuarioMapper::toResponseDTO).collect(Collectors.toList());
+    public Page<UsuarioResponseDTO> findAll(Pageable pageable) {
+        return usuarioRepository.findAll(pageable).map(usuarioMapper::toResponseDTO);
     }
 
     public UsuarioResponseDTO findByID(long id) {
@@ -59,7 +58,7 @@ public class UsuarioService {
 
         if (!usuarioExistente.getEmail().equals(requestDTO.getEmail())
                 && usuarioRepository.findByEmail(requestDTO.getEmail()).isPresent()) {
-            throw new RegraDeNegocioException(MensagensErro.EMAIL_DUPLICADO);
+            throw new RegraDeNegocioException(MensagensDeErro.EMAIL_DUPLICADO);
         }
 
         PapelUsuario papelAntigo = usuarioExistente.getPapel();
@@ -80,14 +79,15 @@ public class UsuarioService {
     }
 
     // Metodos Utilitarios
+
     public Usuario buscarPorId(Long id) {
         return usuarioRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException(
-                        String.format(MensagensErro.USUARIO_NAO_ENCONTRADO_ID, id)));
+                        String.format(MensagensDeErro.USUARIO_NAO_ENCONTRADO_ID, id)));
     }
 
     public Usuario buscarClientePorEmail(String email) {
         return usuarioRepository.findByEmail(email)
-                .orElseThrow(() -> new ResourceNotFoundException(MensagensErro.CLIENTE_NAO_ENCONTRADO));
+                .orElseThrow(() -> new ResourceNotFoundException(MensagensDeErro.CLIENTE_NAO_ENCONTRADO));
     }
 }

@@ -1,8 +1,8 @@
 package com.calvus.yuwebmin.services;
 
 import java.math.BigDecimal;
-import java.util.List;
-import java.util.stream.Collectors;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Page;
 
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -19,9 +19,7 @@ import com.calvus.yuwebmin.models.Pedido;
 import com.calvus.yuwebmin.models.Produto;
 import com.calvus.yuwebmin.models.Usuario;
 import com.calvus.yuwebmin.repositories.PedidoRepository;
-import com.calvus.yuwebmin.repositories.ProdutoRepository;
-import com.calvus.yuwebmin.repositories.UsuarioRepository;
-import com.calvus.yuwebmin.utils.MensagensErro;
+import com.calvus.yuwebmin.utils.MensagensDeErro;
 
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -58,56 +56,42 @@ public class PedidoService {
     @Transactional
     public PedidoResponseDTO createPedido(PedidoRequestDTO requestDTO) {
 
-        if (requestDTO.getItens() == null || requestDTO.getItens().isEmpty()) {
-            throw new RegraDeNegocioException("Não é possível registrar um pedido sem itens.");
-        }
+        validarCarrinho(requestDTO);
 
-        String emailClienteLogado = SecurityContextHolder.getContext().getAuthentication().getName();
-
-        Usuario cliente = usuarioService.buscarClientePorEmail(emailClienteLogado);
-
-        // Criar o pedido
         Pedido novoPedido = new Pedido();
-        novoPedido.setCliente(cliente);
+
+        novoPedido.setCliente(obterClienteAutenticado());
         novoPedido.setStatus(StatusPedido.RECEBIDO);
 
-        BigDecimal valorTotalDoPedido = BigDecimal.ZERO;
+        BigDecimal valorTotal = BigDecimal.ZERO;
 
         for (ItemPedidoRequestDTO itemDto : requestDTO.getItens()) {
-            Produto produto = produtoService.buscarPorId(itemDto.getProdutoId());
+            ItemPedido novoItem = construirItemPedido(itemDto, novoPedido);
+            valorTotal = valorTotal.add(novoItem.getSubTotal());
 
-            ItemPedido novoItem = new ItemPedido();
-            novoItem.setProduto(produto);
-            novoItem.setPedido(novoPedido);
-            novoItem.setQuantidade(itemDto.getQuantidade());
-            novoItem.setPrecoUnitario(produto.getPreco());
-
-            BigDecimal quantidadeDoItem = BigDecimal.valueOf(itemDto.getQuantidade());
-            BigDecimal subTotalDoItem = produto.getPreco().multiply(quantidadeDoItem);
-
-            valorTotalDoPedido = valorTotalDoPedido.add(subTotalDoItem);
-
-            novoPedido.getItens().add(novoItem);
+            novoPedido.adicionarItem(novoItem);
         }
 
-        novoPedido.setValorTotal(valorTotalDoPedido);
-        Pedido pedidoSalvo = pedidoRepository.save(novoPedido);
+        novoPedido.setValorTotal(valorTotal);
 
-        return pedidoMapper.toResponseDTO(pedidoSalvo);
+        return pedidoMapper.toResponseDTO(pedidoRepository.save(novoPedido));
 
     }
 
-    public List<PedidoResponseDTO> listarMeusPedidos() {
+    public Page<PedidoResponseDTO> listarMeusPedidos(Pageable pageable) {
         String emailClienteLogado = SecurityContextHolder.getContext().getAuthentication().getName();
 
-        List<Pedido> meusPedidos = pedidoRepository.findByCliente_Email(emailClienteLogado);
-
-        return meusPedidos.stream()
-                .map(pedidoMapper::toResponseDTO)
-                .collect(Collectors.toList());
+        return pedidoRepository.findByCliente_Email(emailClienteLogado, pageable)
+                .map(pedidoMapper::toResponseDTO);
     }
 
-    ;
+    /**
+     * Lista absolutamente todos os pedidos do restaurante de forma paginada.
+     */
+    public Page<PedidoResponseDTO> findAll(Pageable pageable) {
+        return pedidoRepository.findAll(pageable)
+                .map(pedidoMapper::toResponseDTO);
+    }
 
     public PedidoResponseDTO updateStatus(Long id, StatusPedido novoStatus) {
         Pedido pedido = buscarPedidoPorId(id);
@@ -118,9 +102,38 @@ public class PedidoService {
     }
 
     // Metodos Utilitarios
+
+    /**
+     * Valida se a requisição do frontend contém itens válidos antes de iniciar o
+     * processamento.
+     */
+
+    private void validarCarrinho(PedidoRequestDTO requestDTO) {
+        if (requestDTO.getItens() == null || requestDTO.getItens().isEmpty()) {
+            throw new RegraDeNegocioException(MensagensDeErro.CARRINHO_VAZIO);
+        }
+    }
+
+    private Usuario obterClienteAutenticado() {
+        String emailLogado = SecurityContextHolder.getContext().getAuthentication().getName();
+        return usuarioService.buscarClientePorEmail(emailLogado);
+    }
+
+    private ItemPedido construirItemPedido(ItemPedidoRequestDTO dto, Pedido pedidoVinculado) {
+        Produto produto = produtoService.buscarPorId(dto.getProdutoId());
+
+        ItemPedido item = new ItemPedido();
+        item.setProduto(produto);
+        item.setPedido(pedidoVinculado);
+        item.setQuantidade(dto.getQuantidade());
+        item.setPrecoUnitario(produto.getPreco());
+
+        return item;
+    }
+
     private Pedido buscarPedidoPorId(Long id) {
         return pedidoRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException(
-                        String.format(MensagensErro.PEDIDO_NAO_ENCONTRADO_ID, id)));
+                        String.format(MensagensDeErro.PEDIDO_NAO_ENCONTRADO_ID, id)));
     }
 }

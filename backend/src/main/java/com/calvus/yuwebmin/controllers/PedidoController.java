@@ -12,8 +12,9 @@ import com.calvus.yuwebmin.utils.UriUtils;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-
-import java.util.List;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -35,7 +36,6 @@ import org.springframework.web.bind.annotation.RequestBody;
 @RequiredArgsConstructor
 public class PedidoController {
 
-    private final UsuarioRepository usuarioRepository;
     private final PedidoService pedidoService;
 
     @PostMapping
@@ -46,8 +46,15 @@ public class PedidoController {
     }
 
     @GetMapping("/meus-pedidos")
-    public ResponseEntity<List<PedidoResponseDTO>> listarMeusPedidos() {
-        return ResponseEntity.ok(pedidoService.listarMeusPedidos());
+    public ResponseEntity<Page<PedidoResponseDTO>> listarMeusPedidos(
+            @PageableDefault(size = 5, page = 0, sort = "dataPedido") Pageable pageable) {
+        return ResponseEntity.ok(pedidoService.listarMeusPedidos(pageable));
+    }
+
+    @GetMapping
+    public ResponseEntity<Page<PedidoResponseDTO>> findAll(
+            @PageableDefault(size = 15, page = 0, sort = "id") Pageable pageable) {
+        return ResponseEntity.ok(pedidoService.findAll(pageable));
     }
 
     @PatchMapping("/{id}/status")

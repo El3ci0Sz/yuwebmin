@@ -1,7 +1,7 @@
 package com.calvus.yuwebmin.repositories;
 
-import java.util.List;
-
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
@@ -24,5 +24,5 @@ public interface PedidoRepository extends JpaRepository<Pedido, Long> {
      * O Spring Data JPA traduz "Cliente_Email" para a navegação na propriedade
      * pedido.cliente.email.
      */
-    List<Pedido> findByCliente_Email(String email);
+    Page<Pedido> findByCliente_Email(String email, Pageable pageable);
 }

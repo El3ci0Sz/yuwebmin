@@ -5,9 +5,9 @@ package com.calvus.yuwebmin.utils;
  * Evita duplicação de texto e facilita a padronização
  */
 
-public final class MensagensErro {
+public final class MensagensDeErro {
 
-    private MensagensErro() {
+    private MensagensDeErro() {
     }
 
     // --- USUÁRIO ---

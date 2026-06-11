@@ -50,4 +50,9 @@ public class Pedido {
             this.status = StatusPedido.RECEBIDO;
         }
     }
+
+    public void adicionarItem(ItemPedido item) {
+        this.itens.add(item);
+        this.valorTotal = this.valorTotal.add(item.getSubTotal());
+    }
 }

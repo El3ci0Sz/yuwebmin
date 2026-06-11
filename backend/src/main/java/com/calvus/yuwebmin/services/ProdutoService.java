@@ -1,8 +1,5 @@
 package com.calvus.yuwebmin.services;
 
-import java.util.List;
-import java.util.stream.Collectors;
-
 import org.springframework.stereotype.Service;
 
 import com.calvus.yuwebmin.dtos.request.ProdutoRequestDTO;
@@ -11,7 +8,9 @@ import com.calvus.yuwebmin.exceptions.ResourceNotFoundException;
 import com.calvus.yuwebmin.mappers.ProdutoMapper;
 import com.calvus.yuwebmin.models.Produto;
 import com.calvus.yuwebmin.repositories.ProdutoRepository;
-import com.calvus.yuwebmin.utils.MensagensErro;
+import com.calvus.yuwebmin.utils.MensagensDeErro;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 import lombok.RequiredArgsConstructor;
 
@@ -38,8 +37,8 @@ public class ProdutoService {
     }
 
     // Listar todos os produtos existentes
-    public List<ProdutoResponseDTO> findAll() {
-        return produtoRepository.findAll().stream().map(produtoMapper::toResponseDTO).collect(Collectors.toList());
+    public Page<ProdutoResponseDTO> findAll(Pageable pageable) {
+        return produtoRepository.findAll(pageable).map(produtoMapper::toResponseDTO);
 
     }
 
@@ -74,6 +73,6 @@ public class ProdutoService {
     public Produto buscarPorId(Long id) {
         return produtoRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException(
-                        String.format(MensagensErro.PRODUTO_NAO_ENCONTRADO_ID, id)));
+                        String.format(MensagensDeErro.PRODUTO_NAO_ENCONTRADO_ID, id)));
     }
 }
