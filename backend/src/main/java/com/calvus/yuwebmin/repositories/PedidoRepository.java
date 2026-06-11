@@ -3,7 +3,6 @@ package com.calvus.yuwebmin.repositories;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.stereotype.Repository;
 
 import com.calvus.yuwebmin.models.Pedido;
 
@@ -15,7 +14,6 @@ import com.calvus.yuwebmin.models.Pedido;
  * históricos de compras dos clientes.
  */
 
-@Repository
 public interface PedidoRepository extends JpaRepository<Pedido, Long> {
 
     /**

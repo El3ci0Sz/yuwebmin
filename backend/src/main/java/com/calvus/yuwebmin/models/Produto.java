@@ -2,8 +2,6 @@ package com.calvus.yuwebmin.models;
 
 import java.math.BigDecimal;
 
-import com.calvus.yuwebmin.dtos.response.ProdutoResponseDTO;
-
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;

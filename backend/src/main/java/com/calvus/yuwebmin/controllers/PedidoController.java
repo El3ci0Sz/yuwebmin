@@ -1,6 +1,5 @@
 package com.calvus.yuwebmin.controllers;
 
-import com.calvus.yuwebmin.repositories.UsuarioRepository;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 

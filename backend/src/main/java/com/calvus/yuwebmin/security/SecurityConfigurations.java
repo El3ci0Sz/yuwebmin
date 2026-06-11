@@ -11,9 +11,11 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.config.annotation.web.configuration.WebSecurityCustomizer;
 // Colocar ferramentas na caixa de ferramentas do spring
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
+import jakarta.servlet.DispatcherType;
 import lombok.RequiredArgsConstructor;
 
 @Configuration
@@ -24,22 +26,31 @@ public class SecurityConfigurations {
     private final SecurityFilter securityFilter;
 
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-        return http.csrf(csrf -> csrf.disable())
-                .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))// API nao guarda
-                                                                                                   // sessao do usuario
-                .authorizeHttpRequests(req -> {
-                    // O destrancar das portas
-                    req.requestMatchers(HttpMethod.POST, "/usuarios").permitAll(); // Qualquer um pode se cadastrar
-                    req.requestMatchers(HttpMethod.POST, "/login").permitAll(); // Qualquer um pode tentar fazer login
-                    // Apenas 'ADMIN' podem alterar o status de um pedido
-                    req.requestMatchers(HttpMethod.PATCH, "/pedidos/*/status").hasRole("ADMIN");
-
-                    req.anyRequest().authenticated(); // Qualquer outra requisicao exige o token JWT
-                }).addFilterBefore(securityFilter, UsernamePasswordAuthenticationFilter.class).build();
+    public WebSecurityCustomizer webSecurityCustomizer() {
+        return (web) -> web.ignoring().requestMatchers(
+                "/v3/api-docs",
+                "/v3/api-docs/**",
+                "/swagger-ui.html",
+                "/swagger-ui/**");
     }
 
-    // Criptografar senhas
+    @Bean
+    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+        return http.csrf(csrf -> csrf.disable())
+                .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .authorizeHttpRequests(req -> {
+                    req.dispatcherTypeMatchers(DispatcherType.ERROR).permitAll();
+                    req.requestMatchers("/v3/api-docs", "/v3/api-docs/**", "/swagger-ui.html", "/swagger-ui/**")
+                            .permitAll();
+                    req.requestMatchers(HttpMethod.POST, "/usuarios").permitAll();
+                    req.requestMatchers(HttpMethod.POST, "/login").permitAll();
+                    req.requestMatchers(HttpMethod.PATCH, "/pedidos/*/status").hasRole("ADMIN");
+                    req.anyRequest().authenticated();
+                })
+                .addFilterBefore(securityFilter, UsernamePasswordAuthenticationFilter.class)
+                .build();
+    }
+
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
