@@ -15,16 +15,16 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class Produto{
+public class Produto {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;
-    
+
     @Column(nullable = false, length = 100)
     private String nome;
 
-    @Column( length = 255)
+    @Column(length = 255)
     private String descricao;
 
     @Column(nullable = false, length = 50)
@@ -38,11 +38,6 @@ public class Produto{
     @Column(nullable = false)
     private Boolean ativo = true;
 
-    @Column(name = "url_iamgem", length = 255)
+    @Column(name = "url_imagem", length = 255)
     private String urlImagem;
-
-    public ProdutoResponseDTO toResponseDTO(Produto produtoSalvo) {
-        throw new UnsupportedOperationException("Unimplemented method 'toResponseDTO'");
-    }
-    
 }

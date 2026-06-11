@@ -14,6 +14,7 @@ public interface UsuarioMapper {
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "ativo", ignore = true)
     @Mapping(target = "dataCriacao", ignore = true)
+    @Mapping(target = "authorities", ignore = true)
     Usuario toModel(UsuarioRequestDTO requestDTO);
 
     UsuarioResponseDTO toResponseDTO(Usuario usuario);
@@ -21,6 +22,7 @@ public interface UsuarioMapper {
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "ativo", ignore = true)
     @Mapping(target = "dataCriacao", ignore = true)
+    @Mapping(target = "authorities", ignore = true)
     void atualizarModeloUsuario(@MappingTarget Usuario usuarioExistente, UsuarioRequestDTO requestDTO);
-    
+
 }

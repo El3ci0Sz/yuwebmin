@@ -2,16 +2,15 @@ package com.calvus.yuwebmin.controllers;
 
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import com.calvus.yuwebmin.dtos.request.UsuarioRequestDTO;
 import com.calvus.yuwebmin.dtos.response.UsuarioResponseDTO;
 import com.calvus.yuwebmin.services.UsuarioService;
+import com.calvus.yuwebmin.utils.UriUtils;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
-import java.net.URI;
 import java.util.List;
 
 import org.springframework.http.ResponseEntity;
@@ -33,9 +32,8 @@ public class UsuarioController {
     public ResponseEntity<UsuarioResponseDTO> create(@Valid @RequestBody UsuarioRequestDTO requestDTO) {
         ;
         UsuarioResponseDTO response = usuarioService.create(requestDTO);
-        URI uri = ServletUriComponentsBuilder.fromCurrentRequest().path("/{id}").buildAndExpand(response.getId())
-                .toUri();
-        return ResponseEntity.created(uri).body(response);
+
+        return ResponseEntity.created(UriUtils.criarUriDeRecurso(response.getId())).body(response);
     }
 
     @GetMapping

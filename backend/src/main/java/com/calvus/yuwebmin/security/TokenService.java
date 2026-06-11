@@ -28,7 +28,7 @@ public class TokenService {
             return JWT.create()
                     .withIssuer("YuWebMin API") // Quem emitiu o token
                     .withSubject(usuario.getEmail()) // Quem é o dono do token
-                    .withClaim("papel", usuario.getPapel()) // Guardamos o papel dentro do token para facilitar!
+                    .withClaim("papel", usuario.getPapel().name()) // Guardamos o papel dentro do token para facilitar!
                     .withExpiresAt(dataExpiracao()) // Data de validade (ex: 2 horas)
                     .sign(algoritmo); // Assina e finaliza
 

@@ -1,2 +1,4 @@
 Como ligar o banco:  docker compose up -d. Isso vai baixar o MySQL e ligar o banco de dados yuwebmin_db já com o usuário admin e senha 123.
 Como desligar: docker compose down para desligar o banco e não consumir memória do PC.
+
+Para rodar o backend, usar o comando do spring boot

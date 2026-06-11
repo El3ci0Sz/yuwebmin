@@ -8,11 +8,13 @@ import org.springframework.stereotype.Service;
 
 import com.calvus.yuwebmin.dtos.request.UsuarioRequestDTO;
 import com.calvus.yuwebmin.dtos.response.UsuarioResponseDTO;
+import com.calvus.yuwebmin.enums.PapelUsuario;
 import com.calvus.yuwebmin.exceptions.RegraDeNegocioException;
 import com.calvus.yuwebmin.exceptions.ResourceNotFoundException;
 import com.calvus.yuwebmin.mappers.UsuarioMapper;
 import com.calvus.yuwebmin.models.Usuario;
 import com.calvus.yuwebmin.repositories.UsuarioRepository;
+import com.calvus.yuwebmin.utils.MensagensErro;
 
 import lombok.RequiredArgsConstructor;
 
@@ -25,13 +27,13 @@ public class UsuarioService {
 
     public UsuarioResponseDTO create(UsuarioRequestDTO requestDTO) {
         if (usuarioRepository.findByEmail(requestDTO.getEmail()).isPresent()) {
-            throw new RegraDeNegocioException("Ja existe um usuario cadastrado com esse email");
+            throw new RegraDeNegocioException(MensagensErro.EMAIL_DUPLICADO);
         }
 
         Usuario usuario = usuarioMapper.toModel(requestDTO);
 
-        if (usuario.getPapel() == null || usuario.getPapel().isBlank()) {
-            usuario.setPapel("CLIENTE");
+        if (usuario.getPapel() == null) {
+            usuario.setPapel(PapelUsuario.CLIENTE);
 
         }
 
@@ -47,7 +49,8 @@ public class UsuarioService {
 
     public UsuarioResponseDTO findByID(long id) {
         Usuario usuario = usuarioRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Usuario nao encontrado pelo ID: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        String.format(MensagensErro.USUARIO_NAO_ENCONTRADO_ID, id)));
 
         return usuarioMapper.toResponseDTO(usuario);
     }
@@ -55,18 +58,20 @@ public class UsuarioService {
     public UsuarioResponseDTO update(long id, UsuarioRequestDTO requestDTO) {
 
         Usuario usuarioExistente = usuarioRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Usuario nao encontrado pelo ID: " + id));
+                .orElseThrow(
+                        () -> new ResourceNotFoundException(
+                                String.format(MensagensErro.USUARIO_NAO_ENCONTRADO_ID, id)));
 
         if (!usuarioExistente.getEmail().equals(requestDTO.getEmail())
                 && usuarioRepository.findByEmail(requestDTO.getEmail()).isPresent()) {
-            throw new RegraDeNegocioException("Este email ja esta sendo usado por outro usuario.");
+            throw new RegraDeNegocioException(MensagensErro.EMAIL_DUPLICADO);
         }
 
-        String papelAntigo = usuarioExistente.getPapel();
+        PapelUsuario papelAntigo = usuarioExistente.getPapel();
 
         usuarioMapper.atualizarModeloUsuario(usuarioExistente, requestDTO);
 
-        if (usuarioExistente.getPapel() == null || usuarioExistente.getPapel().isBlank()) {
+        if (usuarioExistente.getPapel() == null) {
             usuarioExistente.setPapel(papelAntigo);
         }
 
@@ -76,7 +81,8 @@ public class UsuarioService {
     public void delete(long id) {
 
         Usuario usuario = usuarioRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Usuario nao encontrado pelo ID: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        String.format(MensagensErro.USUARIO_NAO_ENCONTRADO_ID, id)));
         usuarioRepository.delete(usuario);
     }
 }

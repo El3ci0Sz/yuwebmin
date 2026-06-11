@@ -8,6 +8,8 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
+import com.calvus.yuwebmin.enums.PapelUsuario;
+
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -33,8 +35,9 @@ public class Usuario implements UserDetails {
     @Column(nullable = false)
     private String senha;
 
+    @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)
-    private String papel;
+    private PapelUsuario papel;
 
     @Column(nullable = false)
     private Boolean ativo = true;
@@ -51,7 +54,7 @@ public class Usuario implements UserDetails {
     // Ensina o Spring qual é a permissão (Role) deste usuário
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        if ("ADMIN".equalsIgnoreCase(this.papel)) {
+        if (this.papel == PapelUsuario.ADMIN) {
             return List.of(new SimpleGrantedAuthority("ROLE_ADMIN"), new SimpleGrantedAuthority("ROLE_CLIENTE"));
         } else {
             return List.of(new SimpleGrantedAuthority("ROLE_CLIENTE"));
