@@ -20,4 +20,5 @@ public final class MensagensErro {
 
     // --- PEDIDO ---
     public static final String CARRINHO_VAZIO = "Não é possível registrar um pedido sem itens.";
+    public static final String PEDIDO_NAO_ENCONTRADO_ID = "Pedido não encontrado com o ID: %d";
 }

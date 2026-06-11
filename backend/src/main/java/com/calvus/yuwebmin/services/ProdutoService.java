@@ -45,9 +45,7 @@ public class ProdutoService {
 
     // Encontrar um produto pelo ID
     public ProdutoResponseDTO findByID(long id) {
-        Produto produto = produtoRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException(
-                        String.format(MensagensErro.PRODUTO_NAO_ENCONTRADO_ID, id)));
+        Produto produto = buscarPorId(id);
 
         return produtoMapper.toResponseDTO(produto);
     }
@@ -55,9 +53,7 @@ public class ProdutoService {
     // Atualizar um produto existente
     public ProdutoResponseDTO updateOneProduto(long id, ProdutoRequestDTO requestDTO) {
 
-        Produto produtoExistente = produtoRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException(
-                        String.format(MensagensErro.PRODUTO_NAO_ENCONTRADO_ID, id)));
+        Produto produtoExistente = buscarPorId(id);
 
         produtoMapper.atualizarModeloProduto(produtoExistente, requestDTO);
 
@@ -70,10 +66,14 @@ public class ProdutoService {
     // Deletar produto existente
     public void deleteOneProduto(long id) {
 
-        Produto produtoDeletar = produtoRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException(
-                        String.format(MensagensErro.PRODUTO_NAO_ENCONTRADO_ID, id)));
+        Produto produtoDeletar = buscarPorId(id);
         produtoRepository.delete(produtoDeletar);
     }
 
+    // Metodos Utilitarios
+    public Produto buscarPorId(Long id) {
+        return produtoRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        String.format(MensagensErro.PRODUTO_NAO_ENCONTRADO_ID, id)));
+    }
 }

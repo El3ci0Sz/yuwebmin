@@ -39,9 +39,9 @@ import lombok.RequiredArgsConstructor;
 public class PedidoService {
 
     private final PedidoRepository pedidoRepository;
-    private final ProdutoRepository produtoRepository;
-    private final UsuarioRepository usuarioRepository;
     private final PedidoMapper pedidoMapper;
+    private final ProdutoService produtoService;
+    private final UsuarioService usuarioService;
 
     /**
      * Processa o carrinho de compras do frontend, calcula o total e salva no banco.
@@ -64,8 +64,7 @@ public class PedidoService {
 
         String emailClienteLogado = SecurityContextHolder.getContext().getAuthentication().getName();
 
-        Usuario cliente = usuarioRepository.findByEmail(emailClienteLogado)
-                .orElseThrow(() -> new ResourceNotFoundException(MensagensErro.CLIENTE_NAO_ENCONTRADO));
+        Usuario cliente = usuarioService.buscarClientePorEmail(emailClienteLogado);
 
         // Criar o pedido
         Pedido novoPedido = new Pedido();
@@ -75,9 +74,7 @@ public class PedidoService {
         BigDecimal valorTotalDoPedido = BigDecimal.ZERO;
 
         for (ItemPedidoRequestDTO itemDto : requestDTO.getItens()) {
-            Produto produto = produtoRepository.findById(itemDto.getProdutoId())
-                    .orElseThrow(() -> new ResourceNotFoundException(
-                            "Produto com ID " + itemDto.getProdutoId() + " não existe no cardápio."));
+            Produto produto = produtoService.buscarPorId(itemDto.getProdutoId());
 
             ItemPedido novoItem = new ItemPedido();
             novoItem.setProduto(produto);
@@ -110,4 +107,20 @@ public class PedidoService {
                 .collect(Collectors.toList());
     }
 
+    ;
+
+    public PedidoResponseDTO updateStatus(Long id, StatusPedido novoStatus) {
+        Pedido pedido = buscarPedidoPorId(id);
+
+        pedido.setStatus(novoStatus);
+
+        return pedidoMapper.toResponseDTO(pedidoRepository.save(pedido));
+    }
+
+    // Metodos Utilitarios
+    private Pedido buscarPedidoPorId(Long id) {
+        return pedidoRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        String.format(MensagensErro.PEDIDO_NAO_ENCONTRADO_ID, id)));
+    }
 }

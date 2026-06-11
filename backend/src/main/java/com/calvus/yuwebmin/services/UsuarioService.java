@@ -48,19 +48,14 @@ public class UsuarioService {
     }
 
     public UsuarioResponseDTO findByID(long id) {
-        Usuario usuario = usuarioRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException(
-                        String.format(MensagensErro.USUARIO_NAO_ENCONTRADO_ID, id)));
+        Usuario usuario = buscarPorId(id);
 
         return usuarioMapper.toResponseDTO(usuario);
     }
 
     public UsuarioResponseDTO update(long id, UsuarioRequestDTO requestDTO) {
 
-        Usuario usuarioExistente = usuarioRepository.findById(id)
-                .orElseThrow(
-                        () -> new ResourceNotFoundException(
-                                String.format(MensagensErro.USUARIO_NAO_ENCONTRADO_ID, id)));
+        Usuario usuarioExistente = buscarPorId(id);
 
         if (!usuarioExistente.getEmail().equals(requestDTO.getEmail())
                 && usuarioRepository.findByEmail(requestDTO.getEmail()).isPresent()) {
@@ -80,9 +75,19 @@ public class UsuarioService {
 
     public void delete(long id) {
 
-        Usuario usuario = usuarioRepository.findById(id)
+        Usuario usuario = buscarPorId(id);
+        usuarioRepository.delete(usuario);
+    }
+
+    // Metodos Utilitarios
+    public Usuario buscarPorId(Long id) {
+        return usuarioRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException(
                         String.format(MensagensErro.USUARIO_NAO_ENCONTRADO_ID, id)));
-        usuarioRepository.delete(usuario);
+    }
+
+    public Usuario buscarClientePorEmail(String email) {
+        return usuarioRepository.findByEmail(email)
+                .orElseThrow(() -> new ResourceNotFoundException(MensagensErro.CLIENTE_NAO_ENCONTRADO));
     }
 }

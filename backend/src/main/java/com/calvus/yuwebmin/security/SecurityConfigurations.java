@@ -32,6 +32,8 @@ public class SecurityConfigurations {
                     // O destrancar das portas
                     req.requestMatchers(HttpMethod.POST, "/usuarios").permitAll(); // Qualquer um pode se cadastrar
                     req.requestMatchers(HttpMethod.POST, "/login").permitAll(); // Qualquer um pode tentar fazer login
+                    // Apenas 'ADMIN' podem alterar o status de um pedido
+                    req.requestMatchers(HttpMethod.PATCH, "/pedidos/*/status").hasRole("ADMIN");
 
                     req.anyRequest().authenticated(); // Qualquer outra requisicao exige o token JWT
                 }).addFilterBefore(securityFilter, UsernamePasswordAuthenticationFilter.class).build();
