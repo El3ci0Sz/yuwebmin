@@ -10,7 +10,9 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.calvus.yuwebmin.enums.MetodoPagamento;
 import com.calvus.yuwebmin.enums.StatusPedido;
+import com.calvus.yuwebmin.enums.TipoEntrega;
 
 @Data
 @NoArgsConstructor
@@ -42,6 +44,23 @@ public class Pedido {
 
     @Column(name = "valor_total", nullable = false)
     private BigDecimal valorTotal;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "tipo_entrega", nullable = false, length = 20)
+    private TipoEntrega tipoEntrega;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "metodo_pagamento", nullable = false, length = 20)
+    private MetodoPagamento metodoPagamento;
+
+    // Se o pagamento for DINHEIRO, quanto o entregador precisa levar de troco?
+    @Column(name = "valor_troco")
+    private BigDecimal valorTroco;
+
+    // A ligação com o endereço que o cliente escolheu para esta compra específica
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "endereco_entrega_id")
+    private Endereco enderecoEntrega;
 
     @PrePersist
     protected void onCreate() {

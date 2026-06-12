@@ -1,6 +1,8 @@
 package com.calvus.yuwebmin.models;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.List;
 
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -34,5 +36,16 @@ public class ItemPedido {
 
     public BigDecimal getSubTotal() {
         return this.precoUnitario.multiply(BigDecimal.valueOf(this.quantidade));
+    }
+
+    // Uma linha do pedido (Marmita M) pode conter vários subitens (Arroz, Feijão,
+    // etc.)
+    @OneToMany(mappedBy = "itemPedido", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<SubItemPedido> subItens = new ArrayList<>();
+
+    // Método utilitário para facilitar a montagem no Service
+    public void adicionarSubItem(SubItemPedido subItem) {
+        subItens.add(subItem);
+        subItem.setItemPedido(this);
     }
 }

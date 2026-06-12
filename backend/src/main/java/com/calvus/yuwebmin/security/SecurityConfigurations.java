@@ -45,6 +45,8 @@ public class SecurityConfigurations {
                     req.requestMatchers(HttpMethod.POST, "/usuarios").permitAll();
                     req.requestMatchers(HttpMethod.POST, "/login").permitAll();
                     req.requestMatchers(HttpMethod.PATCH, "/pedidos/*/status").hasRole("ADMIN");
+                    req.requestMatchers(HttpMethod.PATCH, "/produtos/*/ativo").hasRole("ADMIN");
+                    req.requestMatchers(HttpMethod.GET, "/estatisticas/dashboard").hasRole("ADMIN");
                     req.anyRequest().authenticated();
                 })
                 .addFilterBefore(securityFilter, UsernamePasswordAuthenticationFilter.class)

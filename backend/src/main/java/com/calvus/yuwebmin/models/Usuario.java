@@ -1,6 +1,7 @@
 package com.calvus.yuwebmin.models;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
@@ -8,6 +9,7 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
+import com.calvus.yuwebmin.enums.NivelFidelidade;
 import com.calvus.yuwebmin.enums.PapelUsuario;
 
 import jakarta.persistence.*;
@@ -44,6 +46,23 @@ public class Usuario implements UserDetails {
 
     @Column(name = "data_criacao", updatable = false)
     private LocalDateTime dataCriacao;
+
+    @Column(name = "xp_acumulado", nullable = false)
+    private Integer xpAcumulado = 0;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "nivel_fidelidade", nullable = false, length = 20)
+    private NivelFidelidade nivel = NivelFidelidade.INICIANTE;
+
+    @Column(name = "carimbos_fidelidade", nullable = false)
+    private Integer carimbosFidelidade = 0;
+
+    @Column(name = "recompensa_disponivel", nullable = false)
+    private Boolean recompensaDisponivel = false;
+
+    // Relacionamento com a classe endereços, um Usuario pode ter varios endereços
+    @OneToMany(mappedBy = "usuario", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Endereco> enderecos = new ArrayList<>();
 
     // Metodo que o spring chama automaticamente antes de fazer o INSERT no banco
     @PrePersist

@@ -1,20 +1,30 @@
 package com.calvus.yuwebmin.services;
 
 import org.springframework.data.domain.Pageable;
+
+import java.util.List;
+import java.util.stream.Collectors;
+
 import org.springframework.data.domain.Page;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import com.calvus.yuwebmin.dtos.request.EnderecoRequestDTO;
 import com.calvus.yuwebmin.dtos.request.UsuarioRequestDTO;
+import com.calvus.yuwebmin.dtos.response.EnderecoResponseDTO;
 import com.calvus.yuwebmin.dtos.response.UsuarioResponseDTO;
 import com.calvus.yuwebmin.enums.PapelUsuario;
 import com.calvus.yuwebmin.exceptions.RegraDeNegocioException;
 import com.calvus.yuwebmin.exceptions.ResourceNotFoundException;
+import com.calvus.yuwebmin.mappers.EnderecoMapper;
 import com.calvus.yuwebmin.mappers.UsuarioMapper;
+import com.calvus.yuwebmin.models.Endereco;
 import com.calvus.yuwebmin.models.Usuario;
 import com.calvus.yuwebmin.repositories.UsuarioRepository;
 import com.calvus.yuwebmin.utils.MensagensDeErro;
 
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 
 @Service
@@ -23,6 +33,7 @@ public class UsuarioService {
     private final UsuarioRepository usuarioRepository;
     private final UsuarioMapper usuarioMapper;
     private final PasswordEncoder passwordEncoder;
+    private final EnderecoMapper enderecoMapper;
 
     public UsuarioResponseDTO create(UsuarioRequestDTO requestDTO) {
         if (usuarioRepository.findByEmail(requestDTO.getEmail()).isPresent()) {
@@ -76,6 +87,41 @@ public class UsuarioService {
 
         Usuario usuario = buscarPorId(id);
         usuarioRepository.delete(usuario);
+    }
+
+    /**
+     * Cadastra um novo endereço na conta do cliente .
+     */
+    @Transactional
+    public EnderecoResponseDTO adicionarEndereco(EnderecoRequestDTO request) {
+
+        String emailLogado = SecurityContextHolder.getContext().getAuthentication().getName();
+        Usuario cliente = buscarClientePorEmail(emailLogado);
+
+        Endereco novoEndereco = enderecoMapper.toEntity(request);
+
+        novoEndereco.setUsuario(cliente);
+
+        cliente.getEnderecos().add(novoEndereco);
+
+        usuarioRepository.save(cliente);
+
+        Endereco enderecoSalvo = cliente.getEnderecos().get(cliente.getEnderecos().size() - 1);
+
+        return enderecoMapper.toResponseDTO(enderecoSalvo);
+    }
+
+    /**
+     * Lista exclusivamente os endereços da carteira do cliente autenticado.
+     */
+    public List<EnderecoResponseDTO> listarMeusEnderecos() {
+        String emailLogado = SecurityContextHolder.getContext().getAuthentication().getName();
+        Usuario cliente = buscarClientePorEmail(emailLogado);
+
+        // Transforma a lista de Entidades em lista de DTOs
+        return cliente.getEnderecos().stream()
+                .map(enderecoMapper::toResponseDTO)
+                .collect(Collectors.toList());
     }
 
     // Metodos Utilitarios

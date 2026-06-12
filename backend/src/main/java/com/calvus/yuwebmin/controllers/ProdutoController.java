@@ -1,10 +1,12 @@
 package com.calvus.yuwebmin.controllers;
 
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.calvus.yuwebmin.dtos.request.ProdutoRequestDTO;
 import com.calvus.yuwebmin.dtos.response.ProdutoResponseDTO;
+import com.calvus.yuwebmin.enums.CategoriaProduto;
 import com.calvus.yuwebmin.services.ProdutoService;
 import com.calvus.yuwebmin.utils.UriUtils;
 
@@ -20,6 +22,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 
 //Recebe requisicao, repassa para o service, e depois envia a resposta.
@@ -45,6 +48,16 @@ public class ProdutoController {
         return ResponseEntity.ok(produtoService.findAll(pageable));
     }
 
+    // READ todos ativos (Com filtros de busca e categoria)
+    @GetMapping("/ativos")
+    public ResponseEntity<Page<ProdutoResponseDTO>> findAllAtivo(
+            @RequestParam(required = false) CategoriaProduto categoria,
+            @RequestParam(required = false) String busca,
+            @PageableDefault(size = 10, page = 0, sort = "nome") Pageable pageable) {
+
+        return ResponseEntity.ok(produtoService.findAllAtivo(categoria, busca, pageable));
+    }
+
     // READ (id)
     @GetMapping("/{id}")
     public ResponseEntity<ProdutoResponseDTO> findyID(@PathVariable long id) {
@@ -57,6 +70,13 @@ public class ProdutoController {
             @Valid @RequestBody ProdutoRequestDTO requestDTO) {
 
         return ResponseEntity.ok(produtoService.updateOneProduto(id, requestDTO));
+    }
+
+    // Ligar e desligar um produto
+    @PatchMapping("/{id}/ativo")
+    public ResponseEntity<ProdutoResponseDTO> alternarStatusAtivo(@PathVariable Long id) {
+        ProdutoResponseDTO response = produtoService.alternarStatusAtivo(id);
+        return ResponseEntity.ok(response);
     }
 
     // DELETE

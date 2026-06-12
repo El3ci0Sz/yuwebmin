@@ -4,13 +4,18 @@ import org.springframework.stereotype.Service;
 
 import com.calvus.yuwebmin.dtos.request.ProdutoRequestDTO;
 import com.calvus.yuwebmin.dtos.response.ProdutoResponseDTO;
+import com.calvus.yuwebmin.enums.CategoriaProduto;
 import com.calvus.yuwebmin.exceptions.ResourceNotFoundException;
 import com.calvus.yuwebmin.mappers.ProdutoMapper;
 import com.calvus.yuwebmin.models.Produto;
 import com.calvus.yuwebmin.repositories.ProdutoRepository;
 import com.calvus.yuwebmin.utils.MensagensDeErro;
+
+import jakarta.transaction.Transactional;
+
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.scheduling.annotation.Scheduled;
 
 import lombok.RequiredArgsConstructor;
 
@@ -42,6 +47,11 @@ public class ProdutoService {
 
     }
 
+    public Page<ProdutoResponseDTO> findAllAtivo(Pageable pageable) {
+        return produtoRepository.findByAtivoTrue(pageable)
+                .map(produtoMapper::toResponseDTO);
+    }
+
     // Encontrar um produto pelo ID
     public ProdutoResponseDTO findByID(long id) {
         Produto produto = buscarPorId(id);
@@ -67,6 +77,35 @@ public class ProdutoService {
 
         Produto produtoDeletar = buscarPorId(id);
         produtoRepository.delete(produtoDeletar);
+    }
+
+    /**
+     * Lista apenas produtos ativos, permitindo filtros opcionais da barra de
+     * pesquisa e abas.
+     */
+    public Page<ProdutoResponseDTO> findAllAtivo(CategoriaProduto categoria, String busca, Pageable pageable) {
+        return produtoRepository.buscarAtivosComFiltro(categoria, busca, pageable)
+                .map(produtoMapper::toResponseDTO);
+    }
+
+    @Transactional
+    public ProdutoResponseDTO alternarStatusAtivo(Long id) {
+        Produto produto = buscarPorId(id);
+
+        produto.setAtivo(!produto.getAtivo());
+
+        return produtoMapper.toResponseDTO(produtoRepository.save(produto));
+    }
+
+    /**
+     * Rotina automática ativada todos os dias às 05:00 da manhã (Horário de
+     * Brasília).
+     * Reseta o cardápio, mantendo ativos apenas os produtos com 'itemFixo = true'.
+     */
+    @Transactional
+    @Scheduled(cron = "0 0 5 * * *", zone = "America/Sao_Paulo")
+    public void rotinaDiariaDeCardapio() {
+        produtoRepository.resetarCardapioParaItensFixos();
     }
 
     // Metodos Utilitarios

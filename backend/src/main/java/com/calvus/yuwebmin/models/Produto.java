@@ -2,6 +2,8 @@ package com.calvus.yuwebmin.models;
 
 import java.math.BigDecimal;
 
+import com.calvus.yuwebmin.enums.CategoriaProduto;
+
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -25,8 +27,9 @@ public class Produto {
     @Column(length = 255)
     private String descricao;
 
+    @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 50)
-    private String categoria;
+    private CategoriaProduto categoria;
 
     private BigDecimal preco;
 

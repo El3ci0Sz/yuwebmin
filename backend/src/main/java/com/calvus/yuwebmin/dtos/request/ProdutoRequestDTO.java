@@ -2,6 +2,8 @@ package com.calvus.yuwebmin.dtos.request;
 
 import java.math.BigDecimal;
 
+import com.calvus.yuwebmin.enums.CategoriaProduto;
+
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
@@ -12,12 +14,12 @@ import lombok.Data;
 public class ProdutoRequestDTO {
     @NotBlank(message = "O nome do produto não pode ficar em brando")
     private String nome;
-    
+
     private String descricao;
 
     @NotNull(message = "A categoria é obrigatoria")
-    private String categoria;
-    
+    private CategoriaProduto categoria;
+
     @NotNull(message = "A categoria do produto é obrigatoria")
     @Positive(message = "O preço deve ser maior que zero")
     private BigDecimal preco;
