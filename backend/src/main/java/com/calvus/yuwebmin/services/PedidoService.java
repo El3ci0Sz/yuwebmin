@@ -1,6 +1,10 @@
 package com.calvus.yuwebmin.services;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.util.List;
+import java.util.stream.Collectors;
+
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Page;
 
@@ -17,12 +21,16 @@ import com.calvus.yuwebmin.enums.TipoEntrega;
 import com.calvus.yuwebmin.exceptions.RegraDeNegocioException;
 import com.calvus.yuwebmin.exceptions.ResourceNotFoundException;
 import com.calvus.yuwebmin.mappers.PedidoMapper;
+import com.calvus.yuwebmin.models.Acompanhamento;
 import com.calvus.yuwebmin.models.Endereco;
 import com.calvus.yuwebmin.models.ItemPedido;
+import com.calvus.yuwebmin.models.ModeloMarmita;
 import com.calvus.yuwebmin.models.Pedido;
 import com.calvus.yuwebmin.models.Produto;
 import com.calvus.yuwebmin.models.SubItemPedido;
 import com.calvus.yuwebmin.models.Usuario;
+import com.calvus.yuwebmin.repositories.AcompanhamentoRepository;
+import com.calvus.yuwebmin.repositories.ModeloMarmitaRepository;
 import com.calvus.yuwebmin.repositories.PedidoRepository;
 import com.calvus.yuwebmin.utils.MensagensDeErro;
 
@@ -45,6 +53,8 @@ public class PedidoService {
     private final PedidoMapper pedidoMapper;
     private final ProdutoService produtoService;
     private final UsuarioService usuarioService;
+    private final AcompanhamentoRepository acompanhamentoRepository;
+    private final ModeloMarmitaRepository modeloMarmitaRepository;
 
     /**
      * Processa o carrinho de compras do frontend, calcula o total e salva no banco.
@@ -63,27 +73,17 @@ public class PedidoService {
         novoPedido.setStatus(StatusPedido.RECEBIDO);
         configurarLogisticaEPagamento(novoPedido, requestDTO, cliente);
 
-        BigDecimal valorTotal = processarItensECalcularTotal(requestDTO, novoPedido);
-
         for (ItemPedidoRequestDTO itemDto : requestDTO.getItens()) {
             ItemPedido novoItem = construirItemPedido(itemDto, novoPedido);
-            valorTotal = valorTotal.add(novoItem.getSubTotal());
-
             novoPedido.adicionarItem(novoItem);
         }
 
         if (cliente.getRecompensaDisponivel()) {
-            // Zera o valor total da nota fiscal
-            valorTotal = BigDecimal.ZERO;
-
-            // Queima a recompensa para voltar a contar na próxima
+            novoPedido.setValorTotal(BigDecimal.ZERO);
             cliente.setRecompensaDisponivel(false);
         }
 
-        novoPedido.setValorTotal(valorTotal);
-
         return pedidoMapper.toResponseDTO(pedidoRepository.save(novoPedido));
-
     }
 
     public Page<PedidoResponseDTO> listarMeusPedidos(Pageable pageable) {
@@ -114,6 +114,30 @@ public class PedidoService {
         return pedidoMapper.toResponseDTO(pedidoRepository.save(pedido));
     }
 
+    public List<PedidoResponseDTO> listarTodosParaAdmin(StatusPedido status, Long id, String dataFiltro) {
+        if (id != null) {
+            return pedidoRepository.findById(id)
+                    .map(p -> List.of(pedidoMapper.toResponseDTO(p)))
+                    .orElse(List.of());
+        }
+
+        List<Pedido> pedidos = pedidoRepository.findAll();
+
+        if (status != null) {
+            pedidos = pedidos.stream().filter(p -> p.getStatus() == status).collect(Collectors.toList());
+        }
+
+        if (dataFiltro != null && !dataFiltro.isBlank()) {
+            LocalDate dataBusca = LocalDate.parse(dataFiltro);
+            pedidos = pedidos.stream()
+                    .filter(p -> p.getDataPedido() != null && p.getDataPedido().toLocalDate().equals(dataBusca))
+                    .collect(Collectors.toList());
+        }
+
+        return pedidos.stream()
+                .map(pedidoMapper::toResponseDTO)
+                .collect(Collectors.toList());
+    }
     // Metodos Utilitarios
 
     /**
@@ -168,27 +192,56 @@ public class PedidoService {
         return total;
     }
 
+    /**
+     * Monta a linha do pedido (ItemPedido), decidindo se é uma Marmita ou um
+     * Produto Avulso.
+     */
     private ItemPedido construirItemPedido(ItemPedidoRequestDTO dto, Pedido pedidoVinculado) {
-        Produto produto = produtoService.buscarPorId(dto.getProdutoId());
-
         ItemPedido item = new ItemPedido();
-        item.setProduto(produto);
         item.setPedido(pedidoVinculado);
         item.setQuantidade(dto.getQuantidade());
-        item.setPrecoUnitario(produto.getPreco());
 
-        if (dto.getSubItens() != null && !dto.getSubItens().isEmpty()) {
+        if (dto.getModeloMarmitaId() != null) {
 
-            for (SubItemRequestDTO subDto : dto.getSubItens()) {
-                Produto produtoSub = produtoService.buscarPorId(subDto.getProdutoId());
+            ModeloMarmita marmita = modeloMarmitaRepository.findById(dto.getModeloMarmitaId())
+                    .orElseThrow(() -> new RegraDeNegocioException("Modelo de marmita não encontrado."));
 
-                SubItemPedido subItem = new SubItemPedido();
-                subItem.setProduto(produtoSub);
-                subItem.setQuantidade(subDto.getQuantidade());
-                subItem.setPrecoUnitario(produtoSub.getPreco());
-
-                item.adicionarSubItem(subItem);
+            int totalAcompanhamentos = 0;
+            if (dto.getSubItens() != null) {
+                totalAcompanhamentos = dto.getSubItens().stream()
+                        .mapToInt(SubItemRequestDTO::getQuantidade)
+                        .sum();
             }
+
+            if (totalAcompanhamentos > marmita.getLimiteAcompanhamentos()) {
+                throw new RegraDeNegocioException("A marmita " + marmita.getNome() +
+                        " permite no máximo " + marmita.getLimiteAcompanhamentos() + " porções de acompanhamentos.");
+            }
+
+            item.setModeloMarmita(marmita);
+            item.setPrecoUnitario(marmita.getPreco());
+
+            if (dto.getSubItens() != null) {
+                for (SubItemRequestDTO subDto : dto.getSubItens()) {
+                    Acompanhamento acomp = acompanhamentoRepository.findById(subDto.getAcompanhamentoId())
+                            .orElseThrow(() -> new RegraDeNegocioException("Acompanhamento não encontrado."));
+
+                    SubItemPedido subItem = new SubItemPedido();
+                    subItem.setAcompanhamento(acomp);
+                    subItem.setQuantidade(subDto.getQuantidade());
+                    item.adicionarSubItem(subItem);
+                }
+            }
+
+        } else if (dto.getProdutoId() != null) {
+
+            Produto produto = produtoService.buscarPorId(dto.getProdutoId());
+
+            item.setProduto(produto);
+            item.setPrecoUnitario(produto.getPreco());
+
+        } else {
+            throw new RegraDeNegocioException("A linha do pedido deve conter um produto ou uma marmita.");
         }
 
         return item;

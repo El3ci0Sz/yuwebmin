@@ -81,4 +81,12 @@ public class UsuarioController {
         return ResponseEntity.noContent().build();
     }
 
+    /**
+     * Rota HTTP GET para o cliente consultar o próprio perfil
+     * etc).
+     */
+    @GetMapping("/me")
+    public ResponseEntity<UsuarioResponseDTO> obterMeuPerfil() {
+        return ResponseEntity.ok(usuarioService.obterPerfilLogado());
+    }
 }

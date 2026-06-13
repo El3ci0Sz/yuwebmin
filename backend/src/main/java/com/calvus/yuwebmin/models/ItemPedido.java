@@ -20,9 +20,15 @@ public class ItemPedido {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne
-    @JoinColumn(name = "produto_id", nullable = false)
+    // Se o cliente comprou uma bebida ou item por quilo, preenchemos este:
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "produto_id")
     private Produto produto;
+
+    // Se o cliente comprou uma marmita, preenchemos este:
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "modelo_marmita_id")
+    private ModeloMarmita modeloMarmita;
 
     @ManyToOne
     @JoinColumn(name = "pedido_id", nullable = false)
@@ -34,18 +40,18 @@ public class ItemPedido {
     @Column(name = "preco_unitario", nullable = false)
     private BigDecimal precoUnitario;
 
-    public BigDecimal getSubTotal() {
-        return this.precoUnitario.multiply(BigDecimal.valueOf(this.quantidade));
-    }
-
-    // Uma linha do pedido (Marmita M) pode conter vários subitens (Arroz, Feijão,
-    // etc.)
+    // A LISTA QUE FALTAVA: Guarda os acompanhamentos escolhidos para esta marmita
     @OneToMany(mappedBy = "itemPedido", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<SubItemPedido> subItens = new ArrayList<>();
 
-    // Método utilitário para facilitar a montagem no Service
+    // O MÉTODO QUE O VS CODE RECLAMOU QUE NÃO EXISTIA
     public void adicionarSubItem(SubItemPedido subItem) {
         subItens.add(subItem);
         subItem.setItemPedido(this);
     }
+
+    public BigDecimal getSubTotal() {
+        return this.precoUnitario.multiply(BigDecimal.valueOf(this.quantidade));
+    }
+
 }

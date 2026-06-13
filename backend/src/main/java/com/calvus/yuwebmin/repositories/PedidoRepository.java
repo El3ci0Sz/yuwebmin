@@ -2,6 +2,7 @@ package com.calvus.yuwebmin.repositories;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.List;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -39,4 +40,6 @@ public interface PedidoRepository extends JpaRepository<Pedido, Long> {
 
     // Conta pedidos que estão em um status específico (para ver a fila da cozinha)
     Long countByStatus(StatusPedido status);
+
+    List<Pedido> findByStatus(StatusPedido status);
 }

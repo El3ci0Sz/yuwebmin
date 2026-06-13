@@ -9,14 +9,13 @@ import lombok.Data;
 @Data
 public class ItemPedidoRequestDTO {
 
-    @NotNull(message = "O ID do produto é obrigatorio")
-    private long produtoId;
+    private Long produtoId;
+    private Long modeloMarmitaId;
 
     @NotNull(message = "A quantidade é obrigatória")
     @Positive(message = "A quantidade deve ser maior que zero")
     private Integer quantidade;
 
-    // Lista opcional para o caso do produto ser uma Marmita Montável
     private List<SubItemRequestDTO> subItens;
 
 }

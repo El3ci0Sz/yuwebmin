@@ -43,7 +43,7 @@ public class Pedido {
     private StatusPedido status;
 
     @Column(name = "valor_total", nullable = false)
-    private BigDecimal valorTotal;
+    private BigDecimal valorTotal = BigDecimal.ZERO;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "tipo_entrega", nullable = false, length = 20)

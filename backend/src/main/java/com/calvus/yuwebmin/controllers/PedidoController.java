@@ -1,16 +1,21 @@
 package com.calvus.yuwebmin.controllers;
 
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.calvus.yuwebmin.dtos.request.AtualizarStatusPedidoDTO;
 import com.calvus.yuwebmin.dtos.request.PedidoRequestDTO;
 import com.calvus.yuwebmin.dtos.response.PedidoResponseDTO;
+import com.calvus.yuwebmin.enums.StatusPedido;
 import com.calvus.yuwebmin.services.PedidoService;
 import com.calvus.yuwebmin.utils.UriUtils;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+
+import java.util.List;
+
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
@@ -62,4 +67,12 @@ public class PedidoController {
         PedidoResponseDTO response = pedidoService.updateStatus(id, statusDTO.getNovoStatus());
         return ResponseEntity.ok(response);
     }
+
+@GetMapping("/admin")
+    public ResponseEntity<List<PedidoResponseDTO>> listarParaAdmin(
+            @RequestParam(required = false) StatusPedido status,
+            @RequestParam(required = false) Long id,
+            @RequestParam(required = false) String data) {
+        return ResponseEntity.ok(pedidoService.listarTodosParaAdmin(status, id, data));
+}
 }

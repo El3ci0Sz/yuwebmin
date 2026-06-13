@@ -5,12 +5,10 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.math.BigDecimal;
-
 /**
  * Entidade SubItemPedido.
- * Representa os complementos escolhidos para compor uma Marmita (ex: Arroz,
- * Feijão).
+ * Representa a quantidade de um acompanhamento específico escolhido para compor
+ * uma Marmita.
  */
 @Data
 @NoArgsConstructor
@@ -23,25 +21,18 @@ public class SubItemPedido {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    // A qual linha da nota fiscal este complemento pertence?
+    // A qual linha da nota fiscal (Marmita) este complemento pertence?
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "item_pedido_id", nullable = false)
     private ItemPedido itemPedido;
 
-    // Qual é o produto real do cardápio? (O Arroz, o Feijão)
+    // Qual é o acompanhaemtno escolhido? (O Arroz, o Feijão)
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "produto_id", nullable = false)
-    private Produto produto;
+    @JoinColumn(name = "acompanhamento_id", nullable = false)
+    private Acompanhamento acompanhamento;
 
+    // Quantas porções deste acompanhamento o cliente colocou?
     @Column(nullable = false)
     private Integer quantidade;
 
-    // Congela o preço do complemento no momento da compra (caso os complementos
-    // sejam cobrados à parte)
-    @Column(name = "preco_unitario", nullable = false)
-    private BigDecimal precoUnitario = BigDecimal.ZERO;
-
-    public BigDecimal getSubTotal() {
-        return this.precoUnitario.multiply(BigDecimal.valueOf(this.quantidade));
-    }
 }

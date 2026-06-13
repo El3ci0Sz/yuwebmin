@@ -136,4 +136,13 @@ public class UsuarioService {
         return usuarioRepository.findByEmail(email)
                 .orElseThrow(() -> new ResourceNotFoundException(MensagensDeErro.CLIENTE_NAO_ENCONTRADO));
     }
+
+    /**
+     * Retorna o perfil completo do usuário que está logado no momento
+     */
+    public UsuarioResponseDTO obterPerfilLogado() {
+        String emailLogado = SecurityContextHolder.getContext().getAuthentication().getName();
+        Usuario cliente = buscarClientePorEmail(emailLogado);
+        return usuarioMapper.toResponseDTO(cliente);
+    }
 }

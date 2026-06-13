@@ -16,7 +16,7 @@ public class EstatisticasController {
     private final EstatisticasService estatisticasService;
 
     @GetMapping("/dashboard")
-    public ResponseEntity<DashboardResponseDTO> obterDashboard() {
+    public ResponseEntity<DashboardResponseDTO> getDashboard() {
         return ResponseEntity.ok(estatisticasService.gerarDashboard());
     }
 }

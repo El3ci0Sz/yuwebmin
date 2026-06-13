@@ -21,7 +21,5 @@ public interface ItemPedidoMapper {
      * @param item A entidade que veio do banco de dados.
      * @return O DTO pronto para o frontend.
      */
-    @Mapping(target = "produtoId", source = "produto.id")
-    @Mapping(target = "nomeProduto", source = "produto.nome")
     ItemPedidoResponseDTO toResponseDTO(ItemPedido item);
 }

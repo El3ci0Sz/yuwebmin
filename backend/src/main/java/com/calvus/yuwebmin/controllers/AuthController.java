@@ -18,14 +18,14 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 
 @RestController
-@RequestMapping("/login")
+@RequestMapping("/auth")
 @RequiredArgsConstructor
 public class AuthController {
 
     private final AuthenticationManager authenticationManager;
     private final TokenService tokenService;
 
-    @PostMapping
+    @PostMapping("/login")
     public ResponseEntity<LoginResponseDTO> efetuarLogin(@Valid @RequestBody LoginRequestDTO requestDTO) {
         // Cria um token temporario
         var tokenTemporario = new UsernamePasswordAuthenticationToken(requestDTO.email(), requestDTO.senha());

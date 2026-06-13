@@ -14,13 +14,15 @@ import lombok.Data;
 public class PedidoResponseDTO {
 
     private Long id;
-    private String nomeCliente;
     private LocalDateTime dataPedido;
     private StatusPedido status;
     private BigDecimal valorTotal;
-    private List<ItemPedidoResponseDTO> itens;
     private TipoEntrega tipoEntrega;
     private MetodoPagamento metodoPagamento;
-    private EnderecoResponseDTO enderecoEntrega;
+    // Dados do Cliente e Entrega
+    private String nomeCliente;
+    private EnderecoResponseDTO enderecoEntrega; // Rua, número, bairro, etc.
 
+    // A lista de linhas do pedido
+    private List<ItemPedidoResponseDTO> itens;
 }
