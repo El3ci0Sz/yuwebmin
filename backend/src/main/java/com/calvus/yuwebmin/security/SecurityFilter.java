@@ -29,13 +29,17 @@ public class SecurityFilter extends OncePerRequestFilter {
         String tokenJWT = recuperarToken(request);
 
         if (tokenJWT != null) {
-            // Le o email que esta dentro do token
             String emailDonoDoToken = tokenService.getSubject(tokenJWT);
+            var usuarioOpt = usuarioRepository.findByEmail(emailDonoDoToken);
 
-            var usuario = usuarioRepository.findByEmail(emailDonoDoToken)
-                    .orElseThrow(() -> new RuntimeException("Usuario nao encontrado"));
+            if (usuarioOpt.isEmpty()) {
+                response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                return; // interrompe a chain
+            }
 
-            var authentication = new UsernamePasswordAuthenticationToken(usuario, null, usuario.getAuthorities());
+            var usuario = usuarioOpt.get();
+            var authentication = new UsernamePasswordAuthenticationToken(
+                    usuario, null, usuario.getAuthorities());
             SecurityContextHolder.getContext().setAuthentication(authentication);
         }
 
@@ -45,9 +49,8 @@ public class SecurityFilter extends OncePerRequestFilter {
 
     private String recuperarToken(HttpServletRequest request) {
         var authorizationHeader = request.getHeader("Authorization");
-        if (authorizationHeader != null) {
-            return authorizationHeader.replace("Bearer ", "");
-
+        if (authorizationHeader != null && authorizationHeader.startsWith("Bearer ")) {
+            return authorizationHeader.substring(7);
         }
         return null;
     }

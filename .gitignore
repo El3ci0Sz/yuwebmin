@@ -5,6 +5,8 @@ target/
 !**/src/test/**/target/
 
 bd/
+.env
+backend/comandos-db
 
 ### STS ###
 .apt_generated

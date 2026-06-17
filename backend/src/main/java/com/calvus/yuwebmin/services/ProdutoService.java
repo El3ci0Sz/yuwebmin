@@ -1,6 +1,7 @@
 package com.calvus.yuwebmin.services;
 
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.calvus.yuwebmin.dtos.request.ProdutoRequestDTO;
 import com.calvus.yuwebmin.dtos.response.ProdutoResponseDTO;
@@ -10,8 +11,6 @@ import com.calvus.yuwebmin.mappers.ProdutoMapper;
 import com.calvus.yuwebmin.models.Produto;
 import com.calvus.yuwebmin.repositories.ProdutoRepository;
 import com.calvus.yuwebmin.utils.MensagensDeErro;
-
-import jakarta.transaction.Transactional;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -60,6 +59,7 @@ public class ProdutoService {
     }
 
     // Atualizar um produto existente
+    @Transactional
     public ProdutoResponseDTO updateOneProduto(long id, ProdutoRequestDTO requestDTO) {
 
         Produto produtoExistente = buscarPorId(id);
@@ -93,8 +93,9 @@ public class ProdutoService {
         Produto produto = buscarPorId(id);
 
         produto.setAtivo(!produto.getAtivo());
+        // produtoRepository.save(produto)
 
-        return produtoMapper.toResponseDTO(produtoRepository.save(produto));
+        return produtoMapper.toResponseDTO(produto);
     }
 
     /**
@@ -114,4 +115,5 @@ public class ProdutoService {
                 .orElseThrow(() -> new ResourceNotFoundException(
                         String.format(MensagensDeErro.PRODUTO_NAO_ENCONTRADO_ID, id)));
     }
+
 }

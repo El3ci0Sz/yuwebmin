@@ -15,10 +15,10 @@ public class PedidoResponseDTO {
 
     private Long id;
     private LocalDateTime dataPedido;
-    private StatusPedido status;
+    private String status;
     private BigDecimal valorTotal;
-    private TipoEntrega tipoEntrega;
-    private MetodoPagamento metodoPagamento;
+    private String tipoEntrega;
+    private String metodoPagamento;
     // Dados do Cliente e Entrega
     private String nomeCliente;
     private EnderecoResponseDTO enderecoEntrega; // Rua, número, bairro, etc.

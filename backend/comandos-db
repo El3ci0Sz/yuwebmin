@@ -2,3 +2,46 @@ Como ligar o banco:  docker compose up -d. Isso vai baixar o MySQL e ligar o ban
 Como desligar: docker compose down para desligar o banco e não consumir memória do PC.
 
 Para rodar o backend, usar o comando do spring boot
+
+
+1. Edita código Java
+2. mvn package -DskipTests
+3. docker compose up --build -d
+4. docker compose logs -f app   (acompanha se subiu certo)
+5. Testa no http://localhost:8080
+6. docker compose down          (quando acabar o dia)
+
+
+Os comandos essenciais 
+bash# Subir tudo (primeira vez ou após mudança no Dockerfile)
+docker compose up --build
+
+# Subir tudo sem rebuild (quando só mudou código e não quer recompilar imagem)
+docker compose up
+
+# Subir em background (não trava o terminal)
+docker compose up -d
+
+# Ver os logs em tempo real
+docker compose logs -f
+
+# Ver log só de um serviço
+docker compose logs -f app
+docker compose logs -f db
+
+# Parar tudo (mantém os volumes/dados)
+docker compose down
+
+# Parar tudo E apagar os volumes (banco zerado — cuidado!)
+docker compose down -v
+
+# Forçar rebuild de uma imagem específica
+docker compose build app
+
+# Ver o status dos containers
+docker compose ps
+
+Quando eu mudo o código, qual comando uso?
+Depende do que você mudou:
+O que mudouComandoCódigo Java (.java)mvn package -DskipTests depois docker compose up --buildSó o application.propertiesmvn package -DskipTests depois docker compose up --buildO docker-compose.ymldocker compose up (sem --build)O Dockerfiledocker compose up --buildNada, só quer subirdocker compose up -d
+O fluxo de trabalho mais comum no dia a dia de dev é: você edita o código → empacota com Maven → sobe com --build.

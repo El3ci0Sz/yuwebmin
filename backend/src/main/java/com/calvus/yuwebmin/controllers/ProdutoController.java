@@ -60,13 +60,13 @@ public class ProdutoController {
 
     // READ (id)
     @GetMapping("/{id}")
-    public ResponseEntity<ProdutoResponseDTO> findyID(@PathVariable long id) {
+    public ResponseEntity<ProdutoResponseDTO> findByID(@PathVariable Long id) {
         return ResponseEntity.ok(produtoService.findByID(id));
     }
 
     // UPDATE
     @PutMapping("/{id}")
-    public ResponseEntity<ProdutoResponseDTO> update(@PathVariable long id,
+    public ResponseEntity<ProdutoResponseDTO> update(@PathVariable Long id,
             @Valid @RequestBody ProdutoRequestDTO requestDTO) {
 
         return ResponseEntity.ok(produtoService.updateOneProduto(id, requestDTO));
@@ -81,7 +81,7 @@ public class ProdutoController {
 
     // DELETE
     @DeleteMapping("/{id}")
-    public ResponseEntity<ProdutoResponseDTO> delete(@PathVariable long id) {
+    public ResponseEntity<ProdutoResponseDTO> delete(@PathVariable Long id) {
         produtoService.deleteOneProduto(id);
         return ResponseEntity.noContent().build();
     }

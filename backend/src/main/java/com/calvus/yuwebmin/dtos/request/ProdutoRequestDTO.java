@@ -4,6 +4,7 @@ import java.math.BigDecimal;
 
 import com.calvus.yuwebmin.enums.CategoriaProduto;
 
+import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
@@ -20,10 +21,11 @@ public class ProdutoRequestDTO {
     @NotNull(message = "A categoria é obrigatoria")
     private CategoriaProduto categoria;
 
-    @NotNull(message = "A categoria do produto é obrigatoria")
+    @NotNull(message = "A preço do produto é obrigatoria")
     @Positive(message = "O preço deve ser maior que zero")
+    @DecimalMin(value = "0.01", message = "O preço mínimo é R$ 0,01")
     private BigDecimal preco;
-    private Boolean itemFixo;
-    private Boolean ativo;
+    private Boolean itemFixo = false;
+    private Boolean ativo = true;
     private String urlImagem;
 }

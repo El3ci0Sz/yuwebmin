@@ -7,6 +7,7 @@ import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -25,7 +26,7 @@ public class Pedido {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "usuario_id", nullable = false)
     private Usuario cliente;
 
@@ -42,7 +43,7 @@ public class Pedido {
     @Column(nullable = false, length = 30)
     private StatusPedido status;
 
-    @Column(name = "valor_total", nullable = false)
+    @Column(name = "valor_total", nullable = false, precision = 10, scale = 2)
     private BigDecimal valorTotal = BigDecimal.ZERO;
 
     @Enumerated(EnumType.STRING)
@@ -54,7 +55,7 @@ public class Pedido {
     private MetodoPagamento metodoPagamento;
 
     // Se o pagamento for DINHEIRO, quanto o entregador precisa levar de troco?
-    @Column(name = "valor_troco")
+    @Column(name = "valor_troco", precision = 10, scale = 2)
     private BigDecimal valorTroco;
 
     // A ligação com o endereço que o cliente escolheu para esta compra específica
@@ -64,7 +65,7 @@ public class Pedido {
 
     @PrePersist
     protected void onCreate() {
-        this.dataPedido = LocalDateTime.now();
+        this.dataPedido = LocalDateTime.now(ZoneId.of("America/Sao_Paulo"));
         if (this.status == null) {
             this.status = StatusPedido.RECEBIDO;
         }
@@ -73,5 +74,11 @@ public class Pedido {
     public void adicionarItem(ItemPedido item) {
         this.itens.add(item);
         this.valorTotal = this.valorTotal.add(item.getSubTotal());
+    }
+
+    public void recalcularTotal() {
+        this.valorTotal = this.itens.stream()
+                .map(ItemPedido::getSubTotal)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
     }
 }

@@ -68,11 +68,11 @@ public class PedidoController {
         return ResponseEntity.ok(response);
     }
 
-@GetMapping("/admin")
+    @GetMapping("/admin")
     public ResponseEntity<List<PedidoResponseDTO>> listarParaAdmin(
             @RequestParam(required = false) StatusPedido status,
             @RequestParam(required = false) Long id,
             @RequestParam(required = false) String data) {
         return ResponseEntity.ok(pedidoService.listarTodosParaAdmin(status, id, data));
-}
+    }
 }

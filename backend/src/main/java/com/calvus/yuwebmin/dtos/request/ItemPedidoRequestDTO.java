@@ -9,6 +9,7 @@ import lombok.Data;
 @Data
 public class ItemPedidoRequestDTO {
 
+    // Exatamente um dos dois deve ser informado: produtoId ou modeloMarmitaId
     private Long produtoId;
     private Long modeloMarmitaId;
 

@@ -10,6 +10,7 @@ import org.springframework.data.domain.Page;
 
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.calvus.yuwebmin.dtos.request.ItemPedidoRequestDTO;
 import com.calvus.yuwebmin.dtos.request.PedidoRequestDTO;
@@ -34,7 +35,6 @@ import com.calvus.yuwebmin.repositories.ModeloMarmitaRepository;
 import com.calvus.yuwebmin.repositories.PedidoRepository;
 import com.calvus.yuwebmin.utils.MensagensDeErro;
 
-import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 
 /**
@@ -87,7 +87,7 @@ public class PedidoService {
     }
 
     public Page<PedidoResponseDTO> listarMeusPedidos(Pageable pageable) {
-        String emailClienteLogado = SecurityContextHolder.getContext().getAuthentication().getName();
+        String emailClienteLogado = obterEmailAutenticado();
 
         return pedidoRepository.findByCliente_Email(emailClienteLogado, pageable)
                 .map(pedidoMapper::toResponseDTO);
@@ -101,6 +101,7 @@ public class PedidoService {
                 .map(pedidoMapper::toResponseDTO);
     }
 
+    @Transactional
     public PedidoResponseDTO updateStatus(Long id, StatusPedido novoStatus) {
         Pedido pedido = buscarPedidoPorId(id);
 
@@ -111,7 +112,7 @@ public class PedidoService {
 
         pedido.setStatus(novoStatus);
 
-        return pedidoMapper.toResponseDTO(pedidoRepository.save(pedido));
+        return pedidoMapper.toResponseDTO(pedido);
     }
 
     public List<PedidoResponseDTO> listarTodosParaAdmin(StatusPedido status, Long id, String dataFiltro) {
@@ -152,7 +153,7 @@ public class PedidoService {
     }
 
     private Usuario obterClienteAutenticado() {
-        String emailLogado = SecurityContextHolder.getContext().getAuthentication().getName();
+        String emailLogado = obterEmailAutenticado();
         return usuarioService.buscarClientePorEmail(emailLogado);
     }
 
@@ -178,18 +179,6 @@ public class PedidoService {
 
             pedido.setEnderecoEntrega(enderecoEscolhido);
         }
-    }
-
-    private BigDecimal processarItensECalcularTotal(PedidoRequestDTO request, Pedido pedido) {
-        BigDecimal total = BigDecimal.ZERO;
-
-        for (ItemPedidoRequestDTO itemDto : request.getItens()) {
-            ItemPedido novoItem = construirItemPedido(itemDto, pedido);
-            total = total.add(novoItem.getSubTotal());
-            pedido.adicionarItem(novoItem);
-        }
-
-        return total;
     }
 
     /**
@@ -279,24 +268,16 @@ public class PedidoService {
      * Up).
      */
     private void atualizarNivelFidelidade(Usuario cliente) {
-        int xp = cliente.getXpAcumulado();
-
-        if (xp >= 1000) {
-            cliente.setNivel(NivelFidelidade.DIAMANTE);
-        } else if (xp >= 500) {
-            cliente.setNivel(NivelFidelidade.OURO);
-        } else if (xp >= 200) {
-            cliente.setNivel(NivelFidelidade.PRATA);
-        } else if (xp >= 50) {
-            cliente.setNivel(NivelFidelidade.BRONZE);
-        } else {
-            cliente.setNivel(NivelFidelidade.INICIANTE);
-        }
+        cliente.setNivel(NivelFidelidade.calcularPorXp(cliente.getXpAcumulado()));
     }
 
     private Pedido buscarPedidoPorId(Long id) {
         return pedidoRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException(
                         String.format(MensagensDeErro.PEDIDO_NAO_ENCONTRADO_ID, id)));
+    }
+
+    private String obterEmailAutenticado() {
+        return SecurityContextHolder.getContext().getAuthentication().getName();
     }
 }

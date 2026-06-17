@@ -3,6 +3,7 @@ package com.calvus.yuwebmin.security;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
+import java.time.temporal.ChronoUnit;
 
 import org.springframework.stereotype.Service;
 
@@ -52,6 +53,6 @@ public class TokenService {
 
     // Token nao pode durar para sempre, ele vai durar 2 horas
     private Instant dataExpiracao() {
-        return LocalDateTime.now().plusHours(2).toInstant(ZoneOffset.of("-03:00"));
+        return Instant.now().plus(2, ChronoUnit.HOURS);
     }
 }

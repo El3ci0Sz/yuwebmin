@@ -19,7 +19,7 @@ public class Produto {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private long id;
+    private Long id;
 
     @Column(nullable = false, length = 100)
     private String nome;
@@ -31,6 +31,7 @@ public class Produto {
     @Column(nullable = false, length = 50)
     private CategoriaProduto categoria;
 
+    @Column(nullable = false, precision = 10, scale = 2)
     private BigDecimal preco;
 
     @Column(name = "item_fixo", nullable = false)
@@ -39,6 +40,6 @@ public class Produto {
     @Column(nullable = false)
     private Boolean ativo = true;
 
-    @Column(name = "url_imagem", length = 255)
+    @Column(name = "url_imagem", length = 500)
     private String urlImagem;
 }

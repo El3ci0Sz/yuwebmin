@@ -18,7 +18,7 @@ public class PedidoRequestDTO {
     @Valid
     private List<ItemPedidoRequestDTO> itens;
 
-    @NotNull(message = "O tipo de entrega é obrigatório (DELIVERY ou RETIRADA).")
+    @NotNull(message = "O tipo de entrega é obrigatório (ENTREGA ou RETIRADA).")
     private TipoEntrega tipoEntrega;
 
     @NotNull(message = "O método de pagamento é obrigatório.")
