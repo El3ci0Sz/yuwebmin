@@ -56,6 +56,7 @@
         align-items: center;
         gap: 15px;
       }
+
       nav {
         display: flex;
         gap: 10px;
@@ -153,6 +154,14 @@
       .btn.danger {
         background: #e24b4a;
         color: white;
+      }
+      .btn.edit {
+        background: transparent;
+        border: 1px solid #2196f3;
+        color: #2196f3;
+      }
+      .btn.edit:hover {
+        background: #e3f2fd;
       }
 
       .field {
@@ -310,6 +319,20 @@
         overflow-y: auto;
         margin-top: 40px;
       }
+
+      /* Progress Bar Gamification */
+      .progress-bg {
+        background: #f0eadd;
+        height: 16px;
+        border-radius: 8px;
+        overflow: hidden;
+        margin-top: 8px;
+      }
+      .progress-fill {
+        background: var(--primary);
+        height: 100%;
+        transition: width 0.5s ease;
+      }
     </style>
   </head>
   <body>
@@ -363,12 +386,16 @@
 
           <div id="form-login" style="text-align: left">
             <div class="field">
-              <label>E-mail</label>
-              <input type="email" id="login-email" value="admin@yuwebmin.com" />
+              <label>E-mail</label
+              ><input
+                type="email"
+                id="login-email"
+                value="admin@yuwebmin.com"
+              />
             </div>
             <div class="field">
-              <label>Senha</label>
-              <input type="password" id="login-senha" value="123456" />
+              <label>Senha</label
+              ><input type="password" id="login-senha" value="123456" />
             </div>
             <button
               class="btn primary"
@@ -403,9 +430,7 @@
 
       <div id="main-screen" class="hidden">
         <header>
-          <div class="logo-area">
-            <h1>YuWebMin</h1>
-          </div>
+          <div class="logo-area"><h1>YuWebMin</h1></div>
           <div class="header-info">
             <span id="user-info" style="font-weight: 500"></span>
             <span
@@ -433,8 +458,9 @@
           <button onclick="showTab('pedidos')" data-tab="pedidos">
             Meus Pedidos
           </button>
-          <button onclick="showTab('perfil')" data-tab="perfil">Perfil</button>
-
+          <button onclick="showTab('perfil')" data-tab="perfil">
+            Perfil & Fidelidade
+          </button>
           <button
             onclick="showTab('admin-cardapio')"
             data-tab="admin-cardapio"
@@ -442,7 +468,6 @@
           >
             Gestão de Cardápio
           </button>
-
           <button
             onclick="showTab('admin-kds')"
             data-tab="admin-kds"
@@ -462,7 +487,6 @@
               </p>
             </div>
           </div>
-
           <div class="row" style="align-items: flex-start">
             <div style="flex: 2; min-width: 300px">
               <div
@@ -474,22 +498,19 @@
                 "
               >
                 <h3 style="margin: 0">Itens Avulsos</h3>
-                <div class="row">
-                  <select
-                    id="filtro-categoria"
-                    onchange="carregarProdutosAvulsos()"
-                    style="padding: 6px 12px; border-radius: 20px"
-                  >
-                    <option value="">Todas categorias</option>
-                    <option value="BEBIDA">Bebidas</option>
-                    <option value="PORCAO_KILO">Porções / Quilo</option>
-                    <option value="SOBREMESA">Sobremesas</option>
-                  </select>
-                </div>
+                <select
+                  id="filtro-categoria"
+                  onchange="carregarProdutosAvulsos()"
+                  style="padding: 6px 12px; border-radius: 20px"
+                >
+                  <option value="">Todas categorias</option>
+                  <option value="BEBIDA">Bebidas</option>
+                  <option value="PORCAO_KILO">Porções / Quilo</option>
+                  <option value="SOBREMESA">Sobremesas</option>
+                </select>
               </div>
               <div id="cardapio-grid" class="grid"></div>
             </div>
-
             <div style="flex: 1; min-width: 300px">
               <div class="card" style="position: sticky; top: 20px">
                 <h2
@@ -513,10 +534,8 @@
                   Vazia.
                 </div>
                 <div class="total-bar">
-                  <span>Total</span>
-                  <span id="carrinho-total">R$ 0,00</span>
+                  <span>Total</span><span id="carrinho-total">R$ 0,00</span>
                 </div>
-
                 <div
                   style="
                     margin-top: 20px;
@@ -591,7 +610,6 @@
                     style="font-size: 16px; padding: 12px"
                   ></select>
                 </div>
-
                 <div
                   style="
                     display: flex;
@@ -628,7 +646,6 @@
                   style="margin-top: 10px"
                 ></div>
               </div>
-
               <div style="flex: 1">
                 <div
                   style="
@@ -670,6 +687,53 @@
         </div>
 
         <div id="tab-perfil" class="tab-content hidden">
+          <div
+            class="card"
+            style="background: #fff6e5; border: 1px solid var(--primary)"
+          >
+            <div
+              style="
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+              "
+            >
+              <h2 style="margin: 0; color: #4a2c11">
+                Programa de Fidelidade 🏆
+              </h2>
+              <span
+                id="fidelidade-status"
+                style="
+                  font-size: 13px;
+                  font-weight: bold;
+                  color: var(--primary);
+                "
+              ></span>
+            </div>
+            <p style="margin: 8px 0 0 0; font-size: 14px; color: #6b4d32">
+              Seus selos:
+              <strong
+                id="fidelidade-selos"
+                style="font-size: 20px; color: var(--primary)"
+                >0</strong
+              >
+              / 10
+            </p>
+            <div class="progress-bg">
+              <div
+                id="fidelidade-barra"
+                class="progress-fill"
+                style="width: 0%"
+              ></div>
+            </div>
+            <p
+              style="font-size: 12px; color: var(--text-muted); margin-top: 8px"
+            >
+              Cada pedido concluído gera 1 selo. Complete 10 selos e a próxima
+              marmita é por nossa conta!
+            </p>
+          </div>
+
           <div class="card">
             <h2>Meus Endereços</h2>
             <div id="enderecos-lista"></div>
@@ -701,6 +765,7 @@
             <div id="pedidos-sessao"></div>
           </div>
         </div>
+
         <div id="tab-admin-kds" class="tab-content hidden">
           <div class="card" style="margin-bottom: 20px">
             <div
@@ -732,7 +797,6 @@
               "
             >
               <h2 style="margin: 0; color: #4a2c11">Esteira de Comandas</h2>
-
               <div
                 class="row"
                 style="
@@ -744,24 +808,21 @@
                   border: 1px solid var(--border-color);
                 "
               >
-                <div style="display: flex; align-items: center; gap: 8px">
-                  <span
-                    style="
-                      font-size: 14px;
-                      font-weight: 600;
-                      color: var(--text-muted);
-                    "
-                    >Buscar:</span
-                  >
-                  <input
-                    type="number"
-                    id="kds-filtro-id"
-                    placeholder="Nº Pedido"
-                    style="width: 100px; padding: 6px 12px"
-                    onkeyup="if (event.key === 'Enter') carregarKDS();"
-                  />
-                </div>
-
+                <span
+                  style="
+                    font-size: 14px;
+                    font-weight: 600;
+                    color: var(--text-muted);
+                  "
+                  >Buscar:</span
+                >
+                <input
+                  type="number"
+                  id="kds-filtro-id"
+                  placeholder="Nº Pedido"
+                  style="width: 100px; padding: 6px 12px"
+                  onkeyup="if (event.key === 'Enter') carregarKDS();"
+                />
                 <div
                   style="
                     width: 1px;
@@ -770,14 +831,12 @@
                     margin: 0 4px;
                   "
                 ></div>
-
                 <input
                   type="date"
                   id="kds-filtro-data"
                   style="padding: 6px 12px"
                   onchange="carregarKDS()"
                 />
-
                 <select
                   id="kds-filtro"
                   onchange="carregarKDS()"
@@ -793,7 +852,6 @@
                   <option value="SAIU_PARA_ENTREGA">🛵 Na Rua</option>
                   <option value="CONCLUIDO">✅ Concluídos</option>
                 </select>
-
                 <button class="btn primary small" onclick="carregarKDS()">
                   Filtrar
                 </button>
@@ -802,7 +860,6 @@
                 </button>
               </div>
             </div>
-
             <div id="kds-grid-comandas" class="grid" style="gap: 20px">
               <div style="color: var(--text-muted); font-size: 14px">
                 Carregando comandas...
@@ -810,6 +867,7 @@
             </div>
           </div>
         </div>
+
         <div id="tab-admin-cardapio" class="tab-content hidden">
           <div class="card">
             <div
@@ -829,7 +887,6 @@
                 Atualizar
               </button>
             </div>
-
             <div
               class="row"
               style="
@@ -866,10 +923,9 @@
                 style="height: 40px; margin-top: 22px"
                 onclick="addMarmita()"
               >
-                Salvar Marmita
+                Salvar Nova Marmita
               </button>
             </div>
-
             <div id="lista-admin-marmitas" style="margin-top: 16px"></div>
           </div>
 
@@ -881,9 +937,78 @@
                 align-items: center;
               "
             >
-              <h2 style="color: var(--primary); margin: 0">
-                Acompanhamentos (Ingredientes)
-              </h2>
+              <h2 style="color: var(--primary); margin: 0">Produtos Avulsos</h2>
+              <button
+                class="btn outline small"
+                onclick="carregarAdminProdutos()"
+              >
+                Atualizar
+              </button>
+            </div>
+            <div
+              class="row"
+              style="
+                margin-top: 16px;
+                background: #f9f9f9;
+                padding: 16px;
+                border-radius: 12px;
+              "
+            >
+              <div class="field" style="flex: 2">
+                <input
+                  type="text"
+                  id="add-prod-nome"
+                  placeholder="Nome (Ex: Coca-Cola 2L)"
+                />
+              </div>
+              <div class="field" style="flex: 1">
+                <input
+                  type="number"
+                  id="add-prod-preco"
+                  placeholder="Preço (R$)"
+                  step="0.01"
+                />
+              </div>
+              <div class="field" style="flex: 1">
+                <select id="add-prod-cat" style="height: 42px">
+                  <option value="BEBIDA">Bebida</option>
+                  <option value="PORCAO_KILO">Porção / Quilo</option>
+                  <option value="SOBREMESA">Sobremesa</option>
+                </select>
+              </div>
+              <button
+                class="btn primary"
+                style="height: 40px; margin-top: 22px"
+                onclick="addProdutoAdmin()"
+              >
+                Cadastrar Produto
+              </button>
+            </div>
+            <div id="lista-admin-produtos" style="margin-top: 16px"></div>
+          </div>
+
+          <div class="card">
+            <div
+              style="
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+              "
+            >
+              <div>
+                <h2 style="color: var(--primary); margin: 0">
+                  Acompanhamentos da Cozinha
+                </h2>
+                <p
+                  style="
+                    font-size: 12px;
+                    color: var(--text-muted);
+                    margin: 4px 0 0 0;
+                  "
+                >
+                  Desative os itens que acabaram na cozinha hoje.
+                </p>
+              </div>
               <button
                 class="btn outline small"
                 onclick="carregarAdminAcompanhamentos()"
@@ -891,7 +1016,6 @@
                 Atualizar
               </button>
             </div>
-
             <div
               class="row"
               style="
@@ -923,7 +1047,6 @@
                 Salvar Ingrediente
               </button>
             </div>
-
             <div
               id="lista-admin-acompanhamentos"
               style="margin-top: 16px"
@@ -955,11 +1078,11 @@
       let state = {
         token: null,
         usuario: null,
-        produtosAvulsos: [], // Vem de /produtos/ativos
-        modelosMarmita: [], // Vem de /modelos-marmitas/ativos
-        acompanhamentos: [], // Vem de /acompanhamentos/ativos
-        carrinho: [], // Formato: { tipo: 'produto'|'marmita', itemData: {...}, quantidade: 1, subItens: [] }
-        marmitaSubitens: [], // Subitens temporários do builder
+        produtosAvulsos: [],
+        modelosMarmita: [],
+        acompanhamentos: [],
+        carrinho: [],
+        marmitaSubitens: [],
         pedidosSessao: [],
       };
 
@@ -974,14 +1097,33 @@
       function limparLog() {
         document.getElementById("log-box").innerHTML = "";
       }
-      // Adicione isto dentro da sua função showTab(tab) existente:
 
-      // =========================== CRUD ADMIN (MARMITAS E ACOMPANHAMENTOS) ===========================
+      // =========================== FIDELIDADE (FRONTEND GAMIFICATION) ===========================
+      function renderGamificacao() {
+        // Supondo que o DTO do usuário traga "selos" ou "pontosFidelidade"
+        const selos = state.usuario.selos || 0;
+        document.getElementById("fidelidade-selos").textContent = selos;
+
+        const porcentagem = Math.min((selos / 10) * 100, 100);
+        document.getElementById("fidelidade-barra").style.width =
+          porcentagem + "%";
+
+        const statusLabel = document.getElementById("fidelidade-status");
+        if (selos >= 10) {
+          statusLabel.textContent = "🎁 Recompensa Disponível!";
+          statusLabel.style.color = "#2e7d32";
+        } else {
+          statusLabel.textContent = `Faltam ${10 - selos} selos`;
+          statusLabel.style.color = "var(--primary)";
+        }
+      }
+
+      // =========================== CRUD ADMIN ===========================
 
       // 1. MARMITAS
       async function carregarAdminMarmitas() {
         try {
-          const res = await api("/modelos-marmitas"); // Supondo que você criou o endpoint GET que lista todas
+          const res = await api("/modelos-marmitas");
           const lista = res.content || res || [];
           document.getElementById("lista-admin-marmitas").innerHTML = lista
             .map(
@@ -992,6 +1134,7 @@
                 <span style="font-size:11px; margin-left:10px; color:${m.ativo ? "#2e7d32" : "#d32f2f"}">${m.ativo ? "🟢 Ativo" : "🔴 Inativo"}</span>
               </div>
               <div style="display:flex; gap:8px;">
+                <button class="btn small edit" onclick="editarMarmita(${m.id}, '${m.nome}', ${m.preco}, ${m.limiteAcompanhamentos})">Editar</button>
                 <button class="btn small ${m.ativo ? "danger" : "primary"}" onclick="toggleMarmita(${m.id})">${m.ativo ? "Pausar" : "Ativar"}</button>
                 <button class="btn small outline" style="color:#d32f2f; border-color:#d32f2f;" onclick="deletarMarmita(${m.id})">Excluir</button>
               </div>
@@ -1000,7 +1143,7 @@
             )
             .join("");
         } catch (e) {
-          log("Erro ao carregar marmitas no painel admin", true);
+          log("Erro ao carregar marmitas", true);
         }
       }
 
@@ -1018,8 +1161,7 @@
           isNaN(payload.preco) ||
           isNaN(payload.limiteAcompanhamentos)
         )
-          return alert("Preencha todos os campos da marmita.");
-
+          return alert("Preencha todos os campos.");
         await api("/modelos-marmitas", {
           method: "POST",
           body: JSON.stringify(payload),
@@ -1028,7 +1170,35 @@
         document.getElementById("add-marmita-preco").value = "";
         document.getElementById("add-marmita-limite").value = "";
         carregarAdminMarmitas();
-        carregarListasDaAPI(); // Atualiza a vitrine
+        carregarListasDaAPI();
+      }
+
+      // NOVO: Editar Marmita Existente
+      async function editarMarmita(id, nomeAtual, precoAtual, limiteAtual) {
+        const novoNome = prompt("Editar Nome:", nomeAtual);
+        if (!novoNome) return;
+        const novoPreco = prompt("Editar Preço (R$):", precoAtual);
+        if (!novoPreco) return;
+        const novoLimite = prompt(
+          "Editar Limite de Acompanhamentos:",
+          limiteAtual,
+        );
+        if (!novoLimite) return;
+
+        try {
+          await api(`/modelos-marmitas/${id}`, {
+            method: "PUT",
+            body: JSON.stringify({
+              nome: novoNome,
+              preco: parseFloat(novoPreco),
+              limiteAcompanhamentos: parseInt(novoLimite),
+            }),
+          });
+          carregarAdminMarmitas();
+          carregarListasDaAPI();
+        } catch (e) {
+          alert("Erro ao editar marmita.");
+        }
       }
 
       async function toggleMarmita(id) {
@@ -1036,34 +1206,94 @@
         carregarAdminMarmitas();
         carregarListasDaAPI();
       }
-
       async function deletarMarmita(id) {
-        if (!confirm("Tem certeza que deseja excluir esta marmita?")) return;
+        if (!confirm("Excluir esta marmita?")) return;
         try {
           await api(`/modelos-marmitas/${id}`, { method: "DELETE" });
           carregarAdminMarmitas();
           carregarListasDaAPI();
         } catch (e) {
-          alert("Não é possível excluir uma marmita que já foi vendida.");
+          alert("Não pode excluir marmita já vendida.");
+        }
+      }
+
+      // NOVO: PRODUTOS AVULSOS (Admin)
+      async function carregarAdminProdutos() {
+        try {
+          const res = await api("/produtos"); // Lista geral ignorando ativo/inativo
+          const lista = res.content || res || [];
+          document.getElementById("lista-admin-produtos").innerHTML = lista
+            .map(
+              (p) => `
+            <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #eee; padding:10px 0;">
+              <div>
+                <strong>${p.nome}</strong> <span style="font-size:12px; color:#777;">(${p.categoria})</span> - ${formatMoney(p.preco)}
+                <span style="font-size:11px; margin-left:10px; color:${p.ativo ? "#2e7d32" : "#d32f2f"}">${p.ativo ? "🟢 Ativo" : "🔴 Inativo"}</span>
+              </div>
+              <div style="display:flex; gap:8px;">
+                <button class="btn small ${p.ativo ? "danger" : "primary"}" onclick="toggleProduto(${p.id})">${p.ativo ? "Pausar" : "Ativar"}</button>
+                <button class="btn small outline" style="color:#d32f2f; border-color:#d32f2f;" onclick="deletarProduto(${p.id})">Excluir</button>
+              </div>
+            </div>
+          `,
+            )
+            .join("");
+        } catch (e) {
+          log("Erro ao carregar produtos", true);
+        }
+      }
+
+      async function addProdutoAdmin() {
+        const payload = {
+          nome: document.getElementById("add-prod-nome").value,
+          preco: parseFloat(document.getElementById("add-prod-preco").value),
+          categoria: document.getElementById("add-prod-cat").value,
+          ativo: true,
+        };
+        if (!payload.nome || isNaN(payload.preco))
+          return alert("Preencha nome e preço.");
+        await api("/produtos", {
+          method: "POST",
+          body: JSON.stringify(payload),
+        });
+        document.getElementById("add-prod-nome").value = "";
+        document.getElementById("add-prod-preco").value = "";
+        carregarAdminProdutos();
+        carregarListasDaAPI();
+      }
+
+      async function toggleProduto(id) {
+        await api(`/produtos/${id}/ativo`, { method: "PATCH" });
+        carregarAdminProdutos();
+        carregarListasDaAPI();
+      }
+      async function deletarProduto(id) {
+        if (!confirm("Excluir este produto?")) return;
+        try {
+          await api(`/produtos/${id}`, { method: "DELETE" });
+          carregarAdminProdutos();
+          carregarListasDaAPI();
+        } catch (e) {
+          alert("Não pode excluir produto já vendido.");
         }
       }
 
       // 2. ACOMPANHAMENTOS
       async function carregarAdminAcompanhamentos() {
         try {
-          const res = await api("/acompanhamentos"); // Endpoint GET que lista todos
+          const res = await api("/acompanhamentos");
           const lista = res.content || res || [];
           document.getElementById("lista-admin-acompanhamentos").innerHTML =
             lista
               .map(
                 (a) => `
-            <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #eee; padding:10px 0;">
+            <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #eee; padding:10px 0; background: ${a.ativo ? "transparent" : "#fff0f0"};">
               <div>
                 <strong>${a.nome}</strong> ${a.descricao ? `<span style="font-size:12px; color:#777;">- ${a.descricao}</span>` : ""}
-                <span style="font-size:11px; margin-left:10px; color:${a.ativo ? "#2e7d32" : "#d32f2f"}">${a.ativo ? "🟢 Ativo" : "🔴 Inativo"}</span>
+                <span style="font-size:11px; margin-left:10px; color:${a.ativo ? "#2e7d32" : "#d32f2f"}">${a.ativo ? "🟢 Na Cozinha" : "🔴 Em Falta"}</span>
               </div>
               <div style="display:flex; gap:8px;">
-                <button class="btn small ${a.ativo ? "danger" : "primary"}" onclick="toggleAcompanhamento(${a.id})">${a.ativo ? "Pausar" : "Ativar"}</button>
+                <button class="btn small ${a.ativo ? "danger" : "primary"}" onclick="toggleAcompanhamento(${a.id})">${a.ativo ? "Marcar em Falta" : "Reposto"}</button>
                 <button class="btn small outline" style="color:#d32f2f; border-color:#d32f2f;" onclick="deletarAcompanhamento(${a.id})">Excluir</button>
               </div>
             </div>
@@ -1071,34 +1301,25 @@
               )
               .join("");
         } catch (e) {
-          log("Erro ao carregar acompanhamentos no painel admin", true);
+          log("Erro ao carregar acompanhamentos", true);
         }
       }
 
-      function addAcompanhamento(id) {
-        // Usar == resolve o conflito numérico (ex: 1 == "1" é true)
-        const acomp = state.acompanhamentos.find((a) => a.id == id);
-
-        // Trava de segurança: se não achou na memória, para a execução antes de quebrar a tela
-        if (!acomp) {
-          console.error(
-            "Erro: Acompanhamento não encontrado na memória local.",
-          );
-          return;
-        }
-
-        const ext = state.marmitaSubitens.find(
-          (s) => s.acompanhamento && s.acompanhamento.id == id,
-        );
-
-        if (ext) {
-          ext.quantidade++;
-        } else {
-          state.marmitaSubitens.push({ acompanhamento: acomp, quantidade: 1 });
-        }
-
-        renderSubitensTemp();
-        atualizarLimiteMarmita();
+      async function criarAcompanhamentoAdmin() {
+        const payload = {
+          nome: document.getElementById("add-acomp-nome").value,
+          descricao: document.getElementById("add-acomp-desc").value,
+          ativo: true,
+        };
+        if (!payload.nome) return alert("Preencha o nome.");
+        await api("/acompanhamentos", {
+          method: "POST",
+          body: JSON.stringify(payload),
+        });
+        document.getElementById("add-acomp-nome").value = "";
+        document.getElementById("add-acomp-desc").value = "";
+        carregarAdminAcompanhamentos();
+        carregarListasDaAPI();
       }
 
       async function toggleAcompanhamento(id) {
@@ -1106,19 +1327,18 @@
         carregarAdminAcompanhamentos();
         carregarListasDaAPI();
       }
-
       async function deletarAcompanhamento(id) {
-        if (!confirm("Tem certeza que deseja excluir este ingrediente?"))
-          return;
+        if (!confirm("Excluir este ingrediente?")) return;
         try {
           await api(`/acompanhamentos/${id}`, { method: "DELETE" });
           carregarAdminAcompanhamentos();
           carregarListasDaAPI();
         } catch (e) {
-          alert("Não é possível excluir um ingrediente que já foi vendido.");
+          alert("Não pode excluir ingrediente já vendido.");
         }
       }
 
+      // =========================== CORE FUNCTIONS ===========================
       async function api(path, options = {}) {
         const url = getApiBase() + path;
         const headers = options.headers || {};
@@ -1168,7 +1388,6 @@
           showAuthAlert("Falha no login.", "err");
         }
       }
-
       async function fazerCadastro() {
         try {
           const body = {
@@ -1194,6 +1413,7 @@
 
       async function carregarPerfil() {
         state.usuario = await api("/usuarios/me");
+        renderGamificacao(); // Atualiza painel de selos
       }
 
       async function entrarNoApp() {
@@ -1208,8 +1428,7 @@
             .querySelectorAll(".admin-only")
             .forEach((el) => el.classList.remove("hidden"));
         }
-
-        await carregarListasDaAPI(); // Busca de todas as 3 rotas!
+        await carregarListasDaAPI();
         renderEnderecos();
         showTab("home");
       }
@@ -1219,12 +1438,10 @@
           carregarDashboard();
           carregarKDS();
         }
-        if (tab === "admin-kds") {
-          carregarDashboard();
-        }
         if (tab === "admin-cardapio") {
           carregarAdminMarmitas();
           carregarAdminAcompanhamentos();
+          carregarAdminProdutos();
         }
         document
           .querySelectorAll(".tab-content")
@@ -1246,15 +1463,12 @@
         );
       }
 
-      // =========================== BUSCAS DA API (NOVO DDD) ===========================
       async function carregarListasDaAPI() {
         try {
           const marmitasRes = await api("/modelos-marmitas/ativos");
           state.modelosMarmita = marmitasRes.content || marmitasRes || [];
-
           const acompRes = await api("/acompanhamentos/ativos");
           state.acompanhamentos = acompRes.content || acompRes || [];
-
           await carregarProdutosAvulsos();
           montarDropdownMarmitas();
           renderGridAcompanhamentos();
@@ -1269,7 +1483,6 @@
           `/produtos/ativos${cat ? "?categoria=" + cat : ""}`,
         );
         state.produtosAvulsos = res.content || res || [];
-
         const grid = document.getElementById("cardapio-grid");
         grid.innerHTML =
           state.produtosAvulsos
@@ -1318,51 +1531,47 @@
             .join("");
       }
 
+      function addAcompanhamento(id) {
+        const acomp = state.acompanhamentos.find((a) => a.id == id);
+        if (!acomp) return;
+        const ext = state.marmitaSubitens.find(
+          (s) => s.acompanhamento && s.acompanhamento.id == id,
+        );
+        if (ext) ext.quantidade++;
+        else
+          state.marmitaSubitens.push({ acompanhamento: acomp, quantidade: 1 });
+        renderSubitensTemp();
+        atualizarLimiteMarmita();
+      }
+      function mudarQtdAcompanhamento(idx, delta) {
+        state.marmitaSubitens[idx].quantidade += delta;
+        if (state.marmitaSubitens[idx].quantidade <= 0)
+          state.marmitaSubitens.splice(idx, 1);
+        renderSubitensTemp();
+        atualizarLimiteMarmita();
+      }
+
       function atualizarLimiteMarmita() {
         const id = parseInt(document.getElementById("marmita-base").value);
         const marmita = state.modelosMarmita.find((m) => m.id === id);
         if (!marmita) return;
-
         const totalUsado = state.marmitaSubitens.reduce(
           (acc, s) => acc + s.quantidade,
           0,
         );
         document.getElementById("marmita-contador").textContent =
           `${totalUsado} / ${marmita.limiteAcompanhamentos}`;
-
-        // Bloqueia botões se bater no limite
         const bloqueado = totalUsado >= marmita.limiteAcompanhamentos;
         document
           .querySelectorAll(".btn-acomp")
           .forEach((btn) => (btn.disabled = bloqueado));
       }
 
-      async function criarAcompanhamentoAdmin() {
-        const payload = {
-          nome: document.getElementById("add-acomp-nome").value,
-          descricao: document.getElementById("add-acomp-desc").value,
-          ativo: true,
-        };
-        if (!payload.nome) return alert("Preencha o nome do acompanhamento.");
-
-        await api("/acompanhamentos", {
-          method: "POST",
-          body: JSON.stringify(payload),
-        });
-        document.getElementById("add-acomp-nome").value = "";
-        document.getElementById("add-acomp-desc").value = "";
-        carregarAdminAcompanhamentos();
-        carregarListasDaAPI();
-      }
-
       function renderSubitensTemp() {
         const div = document.getElementById("marmita-subitens");
-
-        // Trava de segurança: expulsa do array temporário qualquer item que tenha entrado quebrado (undefined)
         state.marmitaSubitens = state.marmitaSubitens.filter(
           (s) => s && s.acompanhamento,
         );
-
         if (!state.marmitaSubitens.length) {
           div.innerHTML = "";
           document
@@ -1370,20 +1579,16 @@
             .classList.remove("hidden");
           return;
         }
-
         document
           .getElementById("marmita-subitens-vazio")
           .classList.add("hidden");
-
         div.innerHTML = state.marmitaSubitens
           .map(
             (s, idx) => `
           <div style="display:flex; justify-content:space-between; margin-bottom:8px; border-bottom:1px solid #eee; padding-bottom:4px;">
             <span style="font-size:14px;">${s.acompanhamento.nome}</span>
             <div class="qtd-control" style="background:#fff;">
-              <button onclick="mudarQtdAcompanhamento(${idx},-1)">-</button>
-              <span>${s.quantidade}</span>
-              <button onclick="mudarQtdAcompanhamento(${idx},1)">+</button>
+              <button onclick="mudarQtdAcompanhamento(${idx},-1)">-</button><span>${s.quantidade}</span><button onclick="mudarQtdAcompanhamento(${idx},1)">+</button>
             </div>
           </div>
         `,
@@ -1395,7 +1600,6 @@
         const baseId = parseInt(document.getElementById("marmita-base").value);
         const marmita = state.modelosMarmita.find((m) => m.id === baseId);
         if (!marmita) return;
-
         state.carrinho.push({
           tipo: "marmita",
           data: marmita,
@@ -1434,7 +1638,6 @@
 
       function renderCarrinho() {
         const lista = document.getElementById("carrinho-lista");
-
         if (!state.carrinho.length) {
           lista.innerHTML = "";
           document.getElementById("carrinho-vazio").classList.remove("hidden");
@@ -1442,25 +1645,19 @@
           return;
         }
         document.getElementById("carrinho-vazio").classList.add("hidden");
-
-        // 1. Calcula o total absoluto de forma blindada
-        const totalPedido = state.carrinho.reduce((acc, item) => {
-          return acc + parseFloat(item.data.preco) * item.quantidade;
-        }, 0);
-
-        // 2. Desenha o HTML
+        const totalPedido = state.carrinho.reduce(
+          (acc, item) => acc + parseFloat(item.data.preco) * item.quantidade,
+          0,
+        );
         lista.innerHTML = state.carrinho
           .map((item, idx) => {
-            const precoItem = parseFloat(item.data.preco);
-            const subTotalLinha = precoItem * item.quantidade;
-            const isMarmita = item.tipo === "marmita";
-
-            let subsHtml = isMarmita
-              ? item.subItens
-                  .map((s) => `+ ${s.quantidade}x ${s.acompanhamento.nome}`)
-                  .join("<br>")
-              : "";
-
+            const subTotalLinha = parseFloat(item.data.preco) * item.quantidade;
+            let subsHtml =
+              item.tipo === "marmita"
+                ? item.subItens
+                    .map((s) => `+ ${s.quantidade}x ${s.acompanhamento.nome}`)
+                    .join("<br>")
+                : "";
             return `
             <div class="carrinho-item">
               <div>
@@ -1475,8 +1672,6 @@
           `;
           })
           .join("");
-
-        // 3. Atualiza o texto na tela
         document.getElementById("carrinho-total").textContent =
           formatMoney(totalPedido);
       }
@@ -1500,8 +1695,7 @@
 
       function renderEnderecos() {
         const end = state.usuario.enderecos || [];
-        const combo = document.getElementById("endereco-checkout");
-        combo.innerHTML =
+        document.getElementById("endereco-checkout").innerHTML =
           end
             .map(
               (e) => `<option value="${e.id}">${e.rua}, ${e.numero}</option>`,
@@ -1533,8 +1727,6 @@
 
       async function enviarPedido() {
         if (!state.carrinho.length) return alert("Carrinho vazio");
-
-        // MAPEANDO PARA O NOVO DTO (ItemPedidoRequestDTO)
         const payload = {
           tipoEntrega: document.getElementById("tipo-entrega").value,
           metodoPagamento: document.getElementById("metodo-pagamento").value,
@@ -1552,7 +1744,6 @@
             return linhaPedido;
           }),
         };
-
         if (payload.tipoEntrega === "ENTREGA")
           payload.enderecoEntregaId = parseInt(
             document.getElementById("endereco-checkout").value,
@@ -1571,6 +1762,11 @@
           state.carrinho = [];
           renderCarrinho();
           renderPedidos();
+          // Simula adicionar selo na tela de perfil para o MVP (no backend, isso rola quando status vira CONCLUIDO)
+          if (state.usuario) {
+            state.usuario.selos = (state.usuario.selos || 0) + 1;
+            renderGamificacao();
+          }
           showTab("pedidos");
         } catch (e) {
           alert("Erro ao finalizar pedido");
@@ -1591,17 +1787,14 @@
             .join("");
       }
 
-      // =========================== KITCHEN DISPLAY SYSTEM (KDS) ===========================
-      // 1. Busca as comandas e desenha na tela
+      // =========================== KDS & DASHBOARD ===========================
       async function carregarKDS() {
         const status = document.getElementById("kds-filtro")?.value || "";
         const id = document.getElementById("kds-filtro-id")?.value || "";
         const dataFiltro =
           document.getElementById("kds-filtro-data")?.value || "";
-
         const grid = document.getElementById("kds-grid-comandas");
         if (!grid) return;
-
         grid.innerHTML =
           '<div style="color: var(--text-muted); font-size: 14px;">Buscando comandas...</div>';
 
@@ -1610,19 +1803,17 @@
           if (status) url += `status=${status}&`;
           if (id) url += `id=${id}&`;
           if (dataFiltro) url += `data=${dataFiltro}&`;
-
           const res = await api(url);
           let pedidos = res.content || res || [];
 
           if (!pedidos.length) {
-            grid.innerHTML = `<div style="padding: 20px; color: #999;">Nenhuma comanda encontrada para os filtros aplicados.</div>`;
+            grid.innerHTML = `<div style="padding: 20px; color: #999;">Nenhuma comanda.</div>`;
             return;
           }
-
           grid.innerHTML = pedidos
             .map((p) => {
-              let corBorda = "#f0eadd";
-              let corFundo = "#fff";
+              let corBorda = "#f0eadd",
+                corFundo = "#fff";
               if (p.status === "RECEBIDO") {
                 corBorda = "#e24b4a";
                 corFundo = "#fff0f0";
@@ -1636,7 +1827,6 @@
                 corFundo = "#e3f2fd";
               }
 
-              // 1. FORMATADOR DE ITENS DA COMANDA (Com preços individuais)
               const itensHtml = p.itens
                 .map((item) => {
                   const precoExibicao =
@@ -1645,22 +1835,8 @@
                     item.modeloMarmita?.preco ||
                     0;
                   const subTotalItem = precoExibicao * item.quantidade;
-
-                  // Cenário A: É um Produto Comercial (Bebida, Sobremesa, Porção)
-                  if (item.produto) {
-                    return `
-                  <div style="padding: 6px 0; border-bottom: 1px dashed #eee; display: flex; justify-content: space-between; align-items: flex-start;">
-                    <div>
-                      <span style="font-weight: 700; color: var(--primary);">${item.quantidade}x</span> 
-                      <span style="font-weight: 600;">${item.produto.nome}</span>
-                      <div style="font-size: 11px; color: #888;">Categoria: ${item.produto.categoria}</div>
-                    </div>
-                    <span style="font-size: 13px; font-weight: 600; color: #4a2c11;">${formatMoney(subTotalItem)}</span>
-                  </div>
-                `;
-                  }
-
-                  // Cenário B: É uma Marmita Montada
+                  if (item.produto)
+                    return `<div style="padding: 6px 0; border-bottom: 1px dashed #eee; display: flex; justify-content: space-between;"><div style="line-height:1.2"><span style="font-weight: 700; color: var(--primary);">${item.quantidade}x</span> <span>${item.produto.nome}</span></div><span>${formatMoney(subTotalItem)}</span></div>`;
                   if (item.modeloMarmita) {
                     const subs = item.subItens
                       ? item.subItens
@@ -1670,79 +1846,46 @@
                           )
                           .join("<br>")
                       : "Sem acompanhamentos";
-                    return `
-                  <div style="padding: 8px 0; border-bottom: 1px dashed #eee; margin-top: 4px;">
-                    <div style="display: flex; justify-content: space-between; align-items: center;">
-                      <div>
-                        <span style="font-weight: 700; color: var(--primary);">${item.quantidade}x</span> 
-                        <span style="font-weight: bold; color: #2c3e50;">${item.modeloMarmita.nome}</span>
-                      </div>
-                      <span style="font-size: 13px; font-weight: 600; color: #4a2c11;">${formatMoney(subTotalItem)}</span>
-                    </div>
-                    <div style="background: #fdfcf9; border-left: 3px solid var(--primary); padding: 4px 8px; margin-top: 6px; font-size: 12px; line-height: 1.4; color: #555;">
-                      <strong>Composição:</strong><br>${subs}
-                    </div>
-                  </div>
-                `;
+                    return `<div style="padding: 8px 0; border-bottom: 1px dashed #eee; margin-top: 4px;"><div style="display: flex; justify-content: space-between;"><div><span style="font-weight: 700; color: var(--primary);">${item.quantidade}x</span> <strong>${item.modeloMarmita.nome}</strong></div><span>${formatMoney(subTotalItem)}</span></div><div style="background: #fdfcf9; border-left: 3px solid var(--primary); padding: 4px 8px; margin-top: 6px; font-size: 12px; color: #555;">${subs}</div></div>`;
                   }
                   return "";
                 })
                 .join("");
 
-              // 2. FORMATADOR DE ENDEREÇO DE ENTREGA
               let enderecoHtml = `<div style="color: #2e7d32; font-weight: 600;">📍 RETIRADA NO BALCÃO</div>`;
               if (p.tipoEntrega === "ENTREGA" || p.tipoEntrega === "DELIVERY") {
                 if (p.enderecoEntrega) {
                   const end = p.enderecoEntrega;
-                  enderecoHtml = `
-                  <div style="background: #f5f5f5; padding: 8px 12px; border-radius: 8px; font-size: 12px; color: #333; border: 1px solid #e0e0e0;">
-                    <strong>🛵 Endereço de Entrega:</strong><br>
-                    ${end.rua || "Rua não informada"}, Nº ${end.numero || "S/N"}<br>
-                    Bairro: ${end.bairro || "-"} | CEP: ${end.cep || "-"}
-                  </div>
-                `;
+                  enderecoHtml = `<div style="background: #f5f5f5; padding: 8px 12px; border-radius: 8px; font-size: 12px;"><strong>🛵 Endereço:</strong><br>${end.rua}, Nº ${end.numero}<br>Bairro: ${end.bairro}</div>`;
                 } else {
-                  enderecoHtml = `<div style="color: #d32f2f; font-weight: 600;">⚠️ Endereço não associado ao pedido</div>`;
+                  enderecoHtml = `<div style="color: #d32f2f; font-weight: 600;">⚠️ Endereço não informado</div>`;
                 }
               }
 
-              // 3. BOTÕES DE FLUXO DE TRABALHO
               let botoesFluxo = "";
               if (p.status === "RECEBIDO")
-                botoesFluxo = `<button class="btn primary" style="width:100%; padding: 12px;" onclick="mudarStatusKDS(${p.id}, 'PREPARANDO')">👨‍🍳 Aceitar & Começar Preparo</button>`;
+                botoesFluxo = `<button class="btn primary" style="width:100%; padding: 12px;" onclick="mudarStatusKDS(${p.id}, 'PREPARANDO')">👨‍🍳 Começar Preparo</button>`;
               if (p.status === "PREPARANDO")
-                botoesFluxo = `<button class="btn" style="width:100%; padding: 12px; background: #2196F3; color: white;" onclick="mudarStatusKDS(${p.id}, 'SAIU_PARA_ENTREGA')">🛵 Enviar para Entrega</button>`;
+                botoesFluxo = `<button class="btn" style="width:100%; padding: 12px; background: #2196F3; color: white;" onclick="mudarStatusKDS(${p.id}, 'SAIU_PARA_ENTREGA')">🛵 Enviar Entrega</button>`;
               if (p.status === "SAIU_PARA_ENTREGA")
-                botoesFluxo = `<button class="btn" style="width:100%; padding: 12px; background:#2e7d32; color:#fff;" onclick="mudarStatusKDS(${p.id}, 'CONCLUIDO')">✅ Finalizar (Entregue)</button>`;
+                botoesFluxo = `<button class="btn" style="width:100%; padding: 12px; background:#2e7d32; color:#fff;" onclick="mudarStatusKDS(${p.id}, 'CONCLUIDO')">✅ Finalizar</button>`;
 
-              // Retorna o esqueleto da comanda completo
               return `
               <div style="border: 2px solid ${corBorda}; background: ${corFundo}; border-radius: 14px; padding: 18px; box-shadow: 0 6px 14px rgba(0,0,0,0.04); display: flex; flex-direction: column; justify-content: space-between; min-height: 380px;">
                 <div>
                   <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #eee; padding-bottom: 8px; margin-bottom: 12px;">
-                    <h3 style="margin: 0; font-size: 20px; color: #2c3e50;">Comanda #${p.id}</h3>
-                    <span style="font-size: 11px; font-weight: bold; background: ${corBorda}; color: #fff; padding: 2px 8px; border-radius: 20px; text-transform: uppercase;">${p.status}</span>
+                    <h3 style="margin: 0; font-size: 20px;">Comanda #${p.id}</h3>
+                    <span style="font-size: 11px; font-weight: bold; background: ${corBorda}; color: #fff; padding: 2px 8px; border-radius: 20px;">${p.status}</span>
                   </div>
-
-                  <div style="margin-bottom: 12px;">
-                    ${enderecoHtml}
-                  </div>
-
+                  <div style="margin-bottom: 12px;">${enderecoHtml}</div>
                   <div style="font-size: 12px; margin-bottom: 14px; background: #fafafa; padding: 6px 10px; border-radius: 6px; border: 1px solid #eee;">
-                    <strong>Forma de Pago:</strong> ${p.metodoPagamento}
-                    ${p.valorTroco ? `<br><span style="color: #c9302c; font-weight:600;">⚠️ Trazer Troco para: ${formatMoney(p.valorTroco)}</span>` : ""}
+                    <strong>Pago:</strong> ${p.metodoPagamento} ${p.valorTroco ? `<br><span style="color: #c9302c; font-weight:600;">Trazer Troco para: ${formatMoney(p.valorTroco)}</span>` : ""}
                   </div>
-
-                  <div style="margin-bottom: 16px;">
-                    <div style="font-size: 11px; text-transform: uppercase; color: #888; font-weight: bold; margin-bottom: 6px;">Itens Solicitados</div>
-                    ${itensHtml}
-                  </div>
+                  <div style="margin-bottom: 16px;">${itensHtml}</div>
                 </div>
-
                 <div>
-                  <div style="display: flex; justify-content: space-between; align-items: center; font-weight: bold; font-size: 18px; border-top: 2px dashed #ddd; padding-top: 10px; margin-bottom: 14px; color: #4a2c11;">
-                    <span>VALOR TOTAL:</span>
-                    <span>${formatMoney(p.valorTotal)}</span>
+                  <div style="display: flex; justify-content: space-between; align-items: center; font-weight: bold; font-size: 18px; border-top: 2px dashed #ddd; padding-top: 10px; margin-bottom: 14px;">
+                    <span>TOTAL:</span><span>${formatMoney(p.valorTotal)}</span>
                   </div>
                   ${botoesFluxo}
                 </div>
@@ -1751,8 +1894,8 @@
             })
             .join("");
         } catch (e) {
-          log("Erro ao carregar comandas do KDS.", true);
-          grid.innerHTML = `<div class="alert err">Erro de processamento da comanda. Verifique as chaves do DTO no Java.</div>`;
+          log("Erro KDS.", true);
+          grid.innerHTML = `<div class="alert err">Erro na comanda.</div>`;
         }
       }
       function limparFiltrosKDS() {
@@ -1762,70 +1905,42 @@
         carregarKDS();
       }
 
-      // 2. Aciona o PATCH na API e recarrega a esteira e o Dashboard
       async function mudarStatusKDS(pedidoId, novoStatus) {
         try {
           await api(`/pedidos/${pedidoId}/status`, {
             method: "PATCH",
-            // Ajustado de { status: novoStatus } para { novoStatus: novoStatus }
             body: JSON.stringify({ novoStatus: novoStatus }),
           });
-
           carregarDashboard();
           carregarKDS();
         } catch (e) {
-          alert("Falha ao atualizar o status do pedido.");
+          alert("Falha ao atualizar status.");
         }
       }
-      // =========================== DASHBOARD (ADMIN) ===========================
 
       async function carregarDashboard() {
         const contentDiv = document.getElementById("dashboard-content");
         contentDiv.innerHTML =
-          '<div style="color: var(--text-muted); font-size: 13px;">Calculando métricas da cozinha...</div>';
-
+          '<div style="color: var(--text-muted); font-size: 13px;">Calculando métricas...</div>';
         try {
           const data = await api("/estatisticas/dashboard");
-
-          // Lendo exatamente os nomes das variáveis do seu DashboardResponseDTO do Java
-          const vendasHoje = data.totalVendasHoje || 0;
-          const fatHoje = data.faturamentoHoje || 0;
-          const vendasMes = data.totalVendasMes || 0;
-          const fatMes = data.faturamentoMes || 0;
-          const filaCozinha = data.pedidosPendentesCozinha || 0;
-
-          // Desenhando os 5 cartões de forma responsiva
+          const vendasHoje = data.totalVendasHoje || 0,
+            fatHoje = data.faturamentoHoje || 0,
+            vendasMes = data.totalVendasMes || 0,
+            fatMes = data.faturamentoMes || 0,
+            filaCozinha = data.pedidosPendentesCozinha || 0;
           contentDiv.innerHTML = `
             <div class="stat-grid" style="margin-top: 16px;">
-              
-              <div class="stat-card" style="border-color: #e24b4a; background: #fff0f0; grid-column: 1 / -1;">
-                <div class="label" style="color: #c9302c; font-size: 14px;">🔥 Pedidos na Fila da Cozinha</div>
-                <div class="value" style="color: #e24b4a; font-size: 36px;">${filaCozinha}</div>
-              </div>
-
-              <div class="stat-card">
-                <div class="label">Vendas (Hoje)</div>
-                <div class="value">${vendasHoje}</div>
-              </div>
-              <div class="stat-card">
-                <div class="label">Faturamento (Hoje)</div>
-                <div class="value">${formatMoney(fatHoje)}</div>
-              </div>
-
-              <div class="stat-card">
-                <div class="label">Vendas (Mês)</div>
-                <div class="value">${vendasMes}</div>
-              </div>
-              <div class="stat-card">
-                <div class="label">Faturamento (Mês)</div>
-                <div class="value">${formatMoney(fatMes)}</div>
-              </div>
-              
+              <div class="stat-card" style="border-color: #e24b4a; background: #fff0f0; grid-column: 1 / -1;"><div class="label" style="color: #c9302c;">🔥 Fila da Cozinha</div><div class="value" style="color: #e24b4a;">${filaCozinha}</div></div>
+              <div class="stat-card"><div class="label">Vendas Hoje</div><div class="value">${vendasHoje}</div></div>
+              <div class="stat-card"><div class="label">Fat. Hoje</div><div class="value">${formatMoney(fatHoje)}</div></div>
+              <div class="stat-card"><div class="label">Vendas Mês</div><div class="value">${vendasMes}</div></div>
+              <div class="stat-card"><div class="label">Fat. Mês</div><div class="value">${formatMoney(fatMes)}</div></div>
             </div>
           `;
         } catch (e) {
-          log("Erro ao carregar dashboard. O Controller está rodando?", true);
-          contentDiv.innerHTML = `<div class="alert err">Falha ao buscar os dados financeiros.</div>`;
+          log("Erro dashboard.", true);
+          contentDiv.innerHTML = `<div class="alert err">Falha nas métricas.</div>`;
         }
       }
     </script>

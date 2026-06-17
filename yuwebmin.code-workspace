@@ -15,5 +15,6 @@
   ],
   "settings": {
     "java.configuration.updateBuildConfiguration": "interactive",
+    "liveServer.settings.multiRootWorkspaceName": "frontend",
   },
 }
