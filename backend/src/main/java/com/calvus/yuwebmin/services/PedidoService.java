@@ -162,11 +162,18 @@ public class PedidoService {
      * pedido vai.
      */
     private void configurarLogisticaEPagamento(Pedido pedido, PedidoRequestDTO request, Usuario cliente) {
-        pedido.setTipoEntrega(request.getTipoEntrega());
+        // O frontend atual não expõe a escolha de entrega/retirada: quando omitida,
+        // inferimos ENTREGA se um endereço foi informado, senão RETIRADA.
+        TipoEntrega tipoEntrega = request.getTipoEntrega();
+        if (tipoEntrega == null) {
+            tipoEntrega = request.getEnderecoEntregaId() != null ? TipoEntrega.ENTREGA : TipoEntrega.RETIRADA;
+        }
+
+        pedido.setTipoEntrega(tipoEntrega);
         pedido.setMetodoPagamento(request.getMetodoPagamento());
         pedido.setValorTroco(request.getValorTroco());
 
-        if (request.getTipoEntrega() == TipoEntrega.ENTREGA) {
+        if (tipoEntrega == TipoEntrega.ENTREGA) {
             if (request.getEnderecoEntregaId() == null) {
                 throw new RegraDeNegocioException("Para entrega via Delivery, o endereço é obrigatório.");
             }

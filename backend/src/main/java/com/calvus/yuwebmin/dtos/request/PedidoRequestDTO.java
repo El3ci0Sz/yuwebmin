@@ -18,7 +18,9 @@ public class PedidoRequestDTO {
     @Valid
     private List<ItemPedidoRequestDTO> itens;
 
-    @NotNull(message = "O tipo de entrega é obrigatório (ENTREGA ou RETIRADA).")
+    // Opcional: se omitido, o backend infere ENTREGA (quando enderecoEntregaId é
+    // informado) ou RETIRADA (caso contrário). O frontend atual não expõe essa
+    // escolha na tela de pedido.
     private TipoEntrega tipoEntrega;
 
     @NotNull(message = "O método de pagamento é obrigatório.")

@@ -63,6 +63,7 @@ public class AcompanhamentoService {
         acompanhamento.setDescricao(request.getDescricao());
         acompanhamento.setItemFixo(request.getItemFixo());
         acompanhamento.setAtivo(request.getAtivo());
+        acompanhamento.setEmoji(request.getEmoji());
 
         return acompanhamentoMapper.toResponseDTO(acompanhamentoRepository.save(acompanhamento));
     }

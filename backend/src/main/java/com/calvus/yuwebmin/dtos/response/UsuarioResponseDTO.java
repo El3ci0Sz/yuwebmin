@@ -20,6 +20,8 @@ public class UsuarioResponseDTO {
     private Integer carimbosFidelidade;
     private Boolean recompensaDisponivel;
     private Integer xpAcumulado;
+    // Alias amigável de xpAcumulado, para bater com o campo "points" esperado pelo frontend.
+    private Integer pontos;
     private NivelFidelidade nivel;
     private List<EnderecoResponseDTO> enderecos;
 }

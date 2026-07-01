@@ -20,4 +20,7 @@ public class Acompanhamento {
     private Boolean itemFixo = false;
 
     private Boolean ativo = true;
+
+    @Column(length = 10)
+    private String emoji;
 }
