@@ -1,0 +1,576 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>YuWebMin · Apresentação do Projeto</title>
+<style>
+  :root {
+    --bg: #FDF3E0;
+    --card: #FFFFFF;
+    --primary: #E07B39;
+    --primary-dark: #B85C1F;
+    --text: #4A2E14;
+    --muted: #8a7360;
+    --border: #EBD9B8;
+    --accent: #6FA88A;
+    --danger: #C0503E;
+  }
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0; padding: 0; height: 100%;
+    font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, Arial, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    overflow: hidden;
+  }
+  .deck { position: relative; width: 100%; height: 100vh; }
+  .slide {
+    position: absolute; inset: 0;
+    display: none;
+    align-items: center; justify-content: center;
+    padding: 5vh 7vw;
+  }
+  .slide.active { display: flex; }
+  .slide-inner { width: 100%; max-width: 1100px; }
+  .kicker {
+    display: inline-block;
+    font-size: 13px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase;
+    color: var(--primary-dark); background: #FBE3C6;
+    padding: 4px 12px; border-radius: 999px; margin-bottom: 18px;
+  }
+  h1 {
+    font-size: 42px; line-height: 1.15; margin: 0 0 8px 0; color: var(--text);
+    font-weight: 800;
+  }
+  h2.subtitle {
+    font-size: 19px; font-weight: 400; color: var(--muted); margin: 0 0 28px 0;
+  }
+  .bullets { list-style: none; padding: 0; margin: 0; }
+  .bullets li {
+    font-size: 21px; line-height: 1.5; margin-bottom: 14px; padding-left: 34px; position: relative;
+    color: var(--text);
+  }
+  .bullets li::before {
+    content: "•"; position: absolute; left: 8px; top: -2px; color: var(--primary); font-size: 26px;
+  }
+  .bullets li b { color: var(--primary-dark); }
+  .bullets.small li { font-size: 17px; margin-bottom: 10px; }
+  .cols { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; }
+  .cols3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 24px; }
+  .card {
+    background: var(--card); border: 1px solid var(--border); border-radius: 16px;
+    padding: 22px 24px; box-shadow: 0 2px 10px rgba(74,46,20,0.06);
+  }
+  .card h3 { margin: 0 0 10px 0; font-size: 18px; color: var(--primary-dark); display:flex; align-items:center; gap:8px;}
+  .card p, .card li { font-size: 15px; color: var(--text); }
+  .card ul { margin: 0; padding-left: 18px; }
+  .card ul li { margin-bottom: 6px; }
+  .icon-tile { font-size: 28px; }
+  .flow {
+    display: flex; align-items: center; flex-wrap: wrap; gap: 10px; margin-top: 10px;
+  }
+  .flow .box {
+    background: var(--card); border: 2px solid var(--primary); color: var(--text);
+    border-radius: 12px; padding: 14px 16px; font-size: 15px; font-weight: 600;
+    text-align: center; min-width: 130px;
+  }
+  .flow .arrow { color: var(--primary); font-size: 22px; }
+  .diagram {
+    display: flex; align-items: center; justify-content: center; gap: 14px; flex-wrap: wrap;
+    margin: 30px 0;
+  }
+  .diagram .box {
+    background: var(--card); border: 2px solid var(--border); border-radius: 14px;
+    padding: 20px 22px; text-align: center; min-width: 170px; box-shadow: 0 2px 8px rgba(74,46,20,0.06);
+  }
+  .diagram .box.highlight { border-color: var(--primary); }
+  .diagram .box .t { font-weight: 700; font-size: 16px; color: var(--text); }
+  .diagram .box .s { font-size: 12px; color: var(--muted); margin-top: 4px; }
+  .diagram .arrow { font-size: 24px; color: var(--primary-dark); }
+  .layers { display: flex; flex-direction: column; gap: 10px; margin-top: 14px; }
+  .layers .layer {
+    background: var(--card); border: 2px solid var(--border); border-radius: 12px;
+    padding: 12px 18px; font-size: 15px; display: flex; justify-content: space-between; align-items: center;
+  }
+  .layers .layer b { color: var(--primary-dark); }
+  .layers .layer span.tag {
+    font-size: 11px; color: var(--muted); background: #F4E8D3; padding: 3px 10px; border-radius: 999px;
+  }
+  .tag-row { display:flex; gap:10px; flex-wrap:wrap; margin-top: 18px; }
+  .tag {
+    background: #F4E8D3; color: var(--primary-dark); padding: 7px 14px; border-radius: 999px;
+    font-size: 14px; font-weight: 600;
+  }
+  .img-hint {
+    margin-top: 20px; font-size: 13px; color: var(--muted); border-left: 3px solid var(--accent);
+    padding: 8px 14px; background: #F1F7F3; border-radius: 0 8px 8px 0;
+  }
+  .cover { text-align: center; }
+  .cover .logo { font-size: 64px; margin-bottom: 10px; }
+  .cover h1 { font-size: 56px; }
+  .cover .subtitle { font-size: 22px; margin-top: 6px; }
+  .cover .meta { margin-top: 60px; font-size: 15px; color: var(--muted); }
+  .cover .meta .line { margin-bottom: 4px; }
+  .agenda-list { columns: 2; column-gap: 50px; }
+  .agenda-list li { break-inside: avoid; }
+  .badge-num {
+    display:inline-flex; align-items:center; justify-content:center;
+    width: 26px; height: 26px; border-radius: 50%; background: var(--primary); color: #fff;
+    font-size: 13px; font-weight: 700; margin-right: 10px;
+  }
+  .status-pill { display:inline-block; padding: 4px 12px; border-radius:999px; font-size:12px; font-weight:700; }
+  .status-1 { background:#FBE3C6; color:#8a5a1f; }
+  .status-2 { background:#FBE3C6; color:#8a5a1f; }
+  .status-3 { background:#E2EEE7; color:#3f7a5c; }
+  .status-4 { background:#DDEFE2; color:#2f6b46; }
+  .status-5 { background:#F6DCD8; color:#a13d2d; }
+
+  .progress {
+    position: fixed; bottom: 0; left: 0; height: 4px; background: var(--primary);
+    transition: width .25s ease; z-index: 10;
+  }
+  .nav-controls {
+    position: fixed; bottom: 18px; right: 22px; display: flex; align-items: center; gap: 10px;
+    font-size: 13px; color: var(--muted); z-index: 10;
+  }
+  .nav-controls button {
+    background: var(--card); border: 1px solid var(--border); color: var(--text);
+    width: 34px; height: 34px; border-radius: 50%; cursor: pointer; font-size: 16px;
+  }
+  .nav-controls button:hover { background: #FBE3C6; }
+  .counter { font-variant-numeric: tabular-nums; }
+
+  @media print {
+    body { overflow: visible; }
+    .slide { position: relative; display: flex !important; page-break-after: always; height: 100vh; }
+    .nav-controls, .progress { display: none !important; }
+  }
+</style>
+</head>
+<body>
+
+<div class="deck" id="deck">
+
+  <!-- 1. CAPA -->
+  <section class="slide active">
+    <div class="slide-inner cover">
+      <div class="logo">🍱</div>
+      <h1>YuWebMin</h1>
+      <div class="subtitle">Plataforma web para o Restaurante Vegetariano Yuen Min 圓明</div>
+      <div class="meta">
+        <div class="line">Cardápio digital · Montagem de marmita · Fidelidade · Gestão administrativa</div>
+        <div class="line" style="margin-top:18px;">[Nome dos integrantes] · [Disciplina] · [Data]</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 2. AGENDA -->
+  <section class="slide">
+    <div class="slide-inner">
+      <span class="kicker">Sumário</span>
+      <h1>O que vamos ver</h1>
+      <ul class="bullets agenda-list" style="margin-top:20px;">
+        <li>O problema</li>
+        <li>A ideia e o objetivo</li>
+        <li>Como o sistema funciona</li>
+        <li>Funcionalidades (cliente e admin)</li>
+        <li>Arquitetura geral</li>
+        <li>Tecnologias utilizadas</li>
+        <li>APIs e serviços</li>
+        <li>Segurança</li>
+        <li>Desafios e soluções</li>
+        <li>Diferenciais</li>
+        <li>Melhorias futuras</li>
+        <li>Conclusão</li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- 3. O PROBLEMA -->
+  <section class="slide">
+    <div class="slide-inner">
+      <span class="kicker">Contexto</span>
+      <h1>O problema</h1>
+      <h2 class="subtitle">Como o Yuen Min operava antes do sistema</h2>
+      <ul class="bullets">
+        <li><b>Pedidos manuais</b> (balcão/telefone) — sujeitos a erro de anotação e fila de espera.</li>
+        <li><b>Cardápio físico/estático</b> — não reflete o que está disponível naquele dia.</li>
+        <li><b>Montagem de marmita "no olho"</b> — sem controle de limite de porções por tamanho.</li>
+        <li><b>Fidelidade em papel</b> (cartão de carimbo físico) — fácil de perder, difícil de auditar.</li>
+        <li><b>Gestão do dia a dia</b> (cardápio, status dos pedidos, financeiro) dependente de controle manual/planilhas.</li>
+      </ul>
+      <div class="img-hint">💡 Sugestão de imagem: foto de um cartão de fidelidade em papel + comanda manual, para contraste com o sistema digital.</div>
+    </div>
+  </section>
+
+  <!-- 4. IDEIA E OBJETIVO -->
+  <section class="slide">
+    <div class="slide-inner">
+      <span class="kicker">Proposta</span>
+      <h1>A ideia e o objetivo</h1>
+      <ul class="bullets">
+        <li>Digitalizar <b>ponta a ponta</b> a experiência do restaurante: do pedido do cliente à gestão da cozinha.</li>
+        <li>Cliente <b>monta a própria marmita</b> (bento) escolhendo tamanho, acompanhamentos, bebidas e sobremesas.</li>
+        <li>Pedido chega já <b>estruturado e validado</b> por regras de negócio (limite de porções, endereço, forma de pagamento).</li>
+        <li>Equipe do restaurante <b>gerencia tudo em um painel único</b>: cardápio do dia, status dos pedidos e indicadores financeiros.</li>
+        <li>Programa de <b>fidelidade automático</b>, sem cartão de papel.</li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- 5. FLUXO DO CLIENTE -->
+  <section class="slide">
+    <div class="slide-inner">
+      <span class="kicker">Funcionamento</span>
+      <h1>Fluxo do cliente</h1>
+      <div class="flow">
+        <div class="box">1. Login /<br>Cadastro</div>
+        <div class="arrow">→</div>
+        <div class="box">2. Escolher<br>tamanho</div>
+        <div class="arrow">→</div>
+        <div class="box">3. Montar o<br>bento (drag)</div>
+        <div class="arrow">→</div>
+        <div class="box">4. Bebidas /<br>sobremesas</div>
+        <div class="arrow">→</div>
+        <div class="box">5. Entrega ou<br>retirada</div>
+      </div>
+      <div class="flow" style="margin-top:6px;">
+        <div class="box">6. Forma de<br>pagamento</div>
+        <div class="arrow">→</div>
+        <div class="box">7. Confirmar<br>pedido</div>
+        <div class="arrow">→</div>
+        <div class="box" style="border-color:var(--accent);">8. Acompanhar<br>status</div>
+      </div>
+      <div class="img-hint">💡 Sugestão: screenshot real da tela "Monte seu bento" (drag-and-drop) e da tela "Comanda".</div>
+    </div>
+  </section>
+
+  <!-- 6. FLUXO ADMIN -->
+  <section class="slide">
+    <div class="slide-inner">
+      <span class="kicker">Funcionamento</span>
+      <h1>Fluxo administrativo</h1>
+      <div class="cols3">
+        <div class="card">
+          <h3>📋 Gestão de Cardápio</h3>
+          <ul>
+            <li>Criar/editar/remover tamanhos, pratos e produtos</li>
+            <li>Ativar/desativar itens do dia com um clique</li>
+          </ul>
+        </div>
+        <div class="card">
+          <h3>🧾 Gestão de Pedidos</h3>
+          <ul>
+            <li>Ver todos os pedidos recebidos</li>
+            <li>Atualizar status: Aceito → Preparando → Em entrega → Concluído/Negado</li>
+          </ul>
+        </div>
+        <div class="card">
+          <h3>📊 Financeiro</h3>
+          <ul>
+            <li>Vendas do dia / 7 dias / 30 dias</li>
+            <li>Ticket médio, top itens, cancelamentos</li>
+          </ul>
+        </div>
+      </div>
+      <div class="img-hint">💡 Sugestão: screenshot do painel Financeiro (KPIs + gráfico de barras).</div>
+    </div>
+  </section>
+
+  <!-- 7. FUNCIONALIDADES CLIENTE -->
+  <section class="slide">
+    <div class="slide-inner">
+      <span class="kicker">Funcionalidades</span>
+      <h1>Área do cliente</h1>
+      <div class="cols">
+        <ul class="bullets">
+          <li>Login e cadastro com autenticação segura</li>
+          <li>Cardápio dinâmico (vem do banco, não é fixo)</li>
+          <li>Montagem interativa da marmita (arrastar e soltar)</li>
+          <li>Limite de porções por tamanho, validado em tempo real</li>
+        </ul>
+        <ul class="bullets">
+          <li>Escolha entre entrega ou retirada</li>
+          <li>Múltiplos endereços salvos no perfil</li>
+          <li>Diversas formas de pagamento (Pix, cartão, dinheiro)</li>
+          <li>Cartão fidelidade automático + histórico "Meus Pedidos"</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- 8. FUNCIONALIDADES ADMIN -->
+  <section class="slide">
+    <div class="slide-inner">
+      <span class="kicker">Funcionalidades</span>
+      <h1>Área administrativa</h1>
+      <ul class="bullets">
+        <li><b>CRUD completo</b> de tamanhos de marmita, pratos e produtos adicionais (bebidas/sobremesas)</li>
+        <li><b>Controle diário</b> do que está disponível, sem mexer em código ou planilha</li>
+        <li><b>Gestão de pedidos</b> com atualização de status em tempo real</li>
+        <li><b>Dashboard financeiro</b> com indicadores de vendas e desempenho</li>
+        <li><b>Controle de acesso por papel</b> — só administradores acessam essas telas</li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- 9. ARQUITETURA -->
+  <section class="slide">
+    <div class="slide-inner">
+      <span class="kicker">Arquitetura</span>
+      <h1>Visão geral da aplicação</h1>
+      <div class="diagram">
+        <div class="box highlight"><div class="t">🖥️ Frontend</div><div class="s">SPA React (SSR)</div></div>
+        <div class="arrow">⇄</div>
+        <div class="box highlight"><div class="t">⚙️ Backend</div><div class="s">API REST · Spring Boot</div></div>
+        <div class="arrow">⇄</div>
+        <div class="box highlight"><div class="t">🗄️ MySQL</div><div class="s">Banco de dados</div></div>
+      </div>
+      <p style="text-align:center; color:var(--muted); font-size:14px; margin-top:-10px;">
+        Comunicação via HTTP/JSON · Autenticação JWT · Tudo orquestrado com Docker Compose
+      </p>
+      <div class="img-hint">💡 Sugestão: mesmo diagrama, mas com o ícone real do Docker envolvendo Backend + MySQL.</div>
+    </div>
+  </section>
+
+  <!-- 10. ARQUITETURA - CAMADAS BACKEND -->
+  <section class="slide">
+    <div class="slide-inner">
+      <span class="kicker">Arquitetura</span>
+      <h1>Camadas do backend</h1>
+      <div class="layers">
+        <div class="layer"><span><b>Controller</b> — expõe os endpoints REST</span><span class="tag">recebe a requisição</span></div>
+        <div class="layer"><span><b>Service</b> — regras de negócio (ex.: limite de porções, fidelidade)</span><span class="tag">lógica da aplicação</span></div>
+        <div class="layer"><span><b>Repository</b> — acesso ao banco (Spring Data JPA)</span><span class="tag">persistência</span></div>
+        <div class="layer"><span><b>Model / Entity</b> — representa as tabelas do banco</span><span class="tag">dados</span></div>
+      </div>
+      <p style="margin-top:16px; font-size:15px; color:var(--muted);">
+        Atravessando todas as camadas: <b>Security Filter (JWT)</b> valida quem está fazendo a requisição, e <b>Mapper (MapStruct)</b> converte entre Entity e DTO.
+      </p>
+    </div>
+  </section>
+
+  <!-- 11. TECNOLOGIAS BACKEND -->
+  <section class="slide">
+    <div class="slide-inner">
+      <span class="kicker">Tecnologias</span>
+      <h1>Back-end</h1>
+      <div class="tag-row">
+        <span class="tag">☕ Java 25</span>
+        <span class="tag">🌱 Spring Boot 4</span>
+        <span class="tag">🔐 Spring Security + JWT</span>
+        <span class="tag">🗃️ Spring Data JPA / Hibernate</span>
+        <span class="tag">🐬 MySQL 8</span>
+        <span class="tag">🔄 MapStruct</span>
+        <span class="tag">✅ Bean Validation</span>
+        <span class="tag">📄 Swagger / OpenAPI</span>
+        <span class="tag">🧩 Lombok</span>
+      </div>
+      <div class="img-hint">💡 Sugestão: ícones oficiais de cada tecnologia lado a lado (Java, Spring, MySQL).</div>
+    </div>
+  </section>
+
+  <!-- 12. TECNOLOGIAS FRONTEND -->
+  <section class="slide">
+    <div class="slide-inner">
+      <span class="kicker">Tecnologias</span>
+      <h1>Front-end</h1>
+      <div class="tag-row">
+        <span class="tag">⚛️ React 19</span>
+        <span class="tag">🟦 TypeScript</span>
+        <span class="tag">🧭 TanStack Router / Start</span>
+        <span class="tag">🔁 TanStack Query</span>
+        <span class="tag">🎨 Tailwind CSS</span>
+        <span class="tag">🧱 Radix UI (shadcn/ui)</span>
+        <span class="tag">🖱️ dnd-kit (drag-and-drop)</span>
+        <span class="tag">⚡ Vite</span>
+      </div>
+      <p style="margin-top:20px; font-size:15px; color:var(--muted);">
+        TanStack Query cuida do cache e sincronização automática dos dados com a API — a tela sempre reflete o estado real do servidor.
+      </p>
+    </div>
+  </section>
+
+  <!-- 13. TECNOLOGIAS INFRA -->
+  <section class="slide">
+    <div class="slide-inner">
+      <span class="kicker">Tecnologias</span>
+      <h1>Infraestrutura</h1>
+      <div class="tag-row">
+        <span class="tag">🐳 Docker</span>
+        <span class="tag">🧩 Docker Compose</span>
+        <span class="tag">🌎 Perfis dev / prod</span>
+        <span class="tag">☁️ Pronto para deploy em nuvem</span>
+      </div>
+      <ul class="bullets" style="margin-top:24px;">
+        <li>Backend e banco de dados sobem juntos com <b>um único comando</b> (docker compose up)</li>
+        <li>Configuração isolada por ambiente (variáveis de ambiente / .env)</li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- 14. APIS E SERVIÇOS -->
+  <section class="slide">
+    <div class="slide-inner">
+      <span class="kicker">Integrações</span>
+      <h1>APIs e serviços utilizados</h1>
+      <div class="cols">
+        <div class="card">
+          <h3>🔌 API REST própria</h3>
+          <ul>
+            <li><code>/auth</code> — login e emissão de token JWT</li>
+            <li><code>/usuarios</code> — cadastro, perfil, endereços</li>
+            <li><code>/modelos-marmitas</code>, <code>/acompanhamentos</code>, <code>/produtos</code> — cardápio</li>
+            <li><code>/pedidos</code> — criação, status, listagem admin</li>
+            <li><code>/estatisticas</code> — dashboard financeiro</li>
+          </ul>
+        </div>
+        <div class="card">
+          <h3>🛠️ Serviços de apoio</h3>
+          <ul>
+            <li><b>Auth0 java-jwt</b> — geração/validação do token JWT</li>
+            <li><b>Swagger/OpenAPI</b> — documentação e testes interativos da API</li>
+            <li><b>BCrypt</b> (Spring Security) — hash seguro de senha</li>
+          </ul>
+        </div>
+      </div>
+      <div class="img-hint">💡 Sugestão: screenshot da tela do Swagger UI listando os endpoints.</div>
+    </div>
+  </section>
+
+  <!-- 15. SEGURANÇA -->
+  <section class="slide">
+    <div class="slide-inner">
+      <span class="kicker">Segurança</span>
+      <h1>Como protegemos o sistema</h1>
+      <ul class="bullets">
+        <li><b>Autenticação stateless via JWT</b> — token enviado em cada requisição, sem sessão no servidor</li>
+        <li><b>Senhas nunca em texto puro</b> — hash com BCrypt</li>
+        <li><b>Controle de acesso por papel</b> (CLIENTE / ADMIN) — rotas administrativas bloqueadas para clientes comuns</li>
+        <li><b>CORS configurado</b> por ambiente, liberando só as origens confiáveis</li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- 16. DESAFIOS -->
+  <section class="slide">
+    <div class="slide-inner">
+      <span class="kicker">Aprendizado</span>
+      <h1>Principais desafios e soluções</h1>
+      <ul class="bullets small">
+        <li><b>Integrar um front-end prototipado a um backend com modelo de negócio próprio</b> — o preço da marmita é fixo por tamanho (não soma de cada item); foi preciso mapear e adaptar as telas para essa regra real.</li>
+        <li><b>Ambiente Docker + MySQL</b> — problemas de handshake SSL e credenciais desatualizadas em containers recriados; resolvido ajustando a string de conexão e recriando o volume do banco.</li>
+        <li><b>Compatibilidade Windows/Linux</b> — script do Maven quebrava dentro do container por causa de quebra de linha (CRLF); corrigido com <code>.gitattributes</code> forçando LF.</li>
+        <li><b>Sincronizar a interface com regras que mudam no servidor</b> (ex.: pontos de fidelidade após um pedido ser concluído) — implementado refetch automático do perfil do usuário.</li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- 17. DIFERENCIAIS -->
+  <section class="slide">
+    <div class="slide-inner">
+      <span class="kicker">Destaques</span>
+      <h1>Diferenciais do projeto</h1>
+      <div class="cols3">
+        <div class="card">
+          <div class="icon-tile">🖱️</div>
+          <h3>Montagem interativa</h3>
+          <p>Drag-and-drop para montar a marmita, com validação de limite por tamanho em tempo real.</p>
+        </div>
+        <div class="card">
+          <div class="icon-tile">🎁</div>
+          <h3>Fidelidade automática</h3>
+          <p>7 carimbos = marmita grátis, aplicado como forma de pagamento no próprio checkout.</p>
+        </div>
+        <div class="card">
+          <div class="icon-tile">🛠️</div>
+          <h3>Painel admin completo</h3>
+          <p>Cardápio, pedidos e financeiro em um só lugar, com atualização em tempo real.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 18. MELHORIAS FUTURAS -->
+  <section class="slide">
+    <div class="slide-inner">
+      <span class="kicker">Próximos passos</span>
+      <h1>Melhorias futuras</h1>
+      <ul class="bullets">
+        <li>Edição e remoção de endereços salvos</li>
+        <li>Integração com gateway de pagamento real (Pix/cartão online)</li>
+        <li>Notificações de status do pedido (push, e-mail ou WhatsApp)</li>
+        <li>Marmita "por peso" (opção personalizada)</li>
+        <li>Testes automatizados (unitários e de integração)</li>
+        <li>Deploy em produção com CI/CD e aplicativo mobile</li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- 19. CONCLUSÃO -->
+  <section class="slide">
+    <div class="slide-inner">
+      <span class="kicker">Fechamento</span>
+      <h1>Conclusão</h1>
+      <ul class="bullets">
+        <li>Sistema <b>funcional de ponta a ponta</b>: do pedido do cliente à gestão da cozinha</li>
+        <li>Arquitetura <b>moderna e desacoplada</b> (API REST + SPA), fácil de evoluir</li>
+        <li>Resolve os problemas reais do restaurante: fila, erro manual, fidelidade em papel</li>
+        <li>Base sólida para crescer: pagamentos reais, notificações, app mobile</li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- 20. OBRIGADO -->
+  <section class="slide">
+    <div class="slide-inner cover">
+      <div class="logo">🙏</div>
+      <h1 style="font-size:44px;">Obrigado!</h1>
+      <div class="subtitle">Perguntas?</div>
+      <div class="meta">
+        <div class="line">[Repositório / contato do grupo]</div>
+      </div>
+    </div>
+  </section>
+
+</div>
+
+<div class="progress" id="progress"></div>
+<div class="nav-controls">
+  <button id="prevBtn" title="Anterior (←)">‹</button>
+  <span class="counter" id="counter">1 / 20</span>
+  <button id="nextBtn" title="Próximo (→)">›</button>
+</div>
+
+<script>
+  const slides = document.querySelectorAll('.slide');
+  const total = slides.length;
+  let idx = 0;
+
+  function render() {
+    slides.forEach((s, i) => s.classList.toggle('active', i === idx));
+    document.getElementById('counter').textContent = (idx + 1) + ' / ' + total;
+    document.getElementById('progress').style.width = (((idx + 1) / total) * 100) + '%';
+  }
+  function go(delta) {
+    idx = Math.min(total - 1, Math.max(0, idx + delta));
+    render();
+  }
+  document.getElementById('prevBtn').addEventListener('click', () => go(-1));
+  document.getElementById('nextBtn').addEventListener('click', () => go(1));
+  document.addEventListener('keydown', (e) => {
+    if (['ArrowRight', 'PageDown', ' '].includes(e.key)) go(1);
+    if (['ArrowLeft', 'PageUp'].includes(e.key)) go(-1);
+    if (e.key === 'Home') { idx = 0; render(); }
+    if (e.key === 'End') { idx = total - 1; render(); }
+  });
+  document.getElementById('deck').addEventListener('click', (e) => {
+    const rect = document.getElementById('deck').getBoundingClientRect();
+    if (e.clientX - rect.left > rect.width / 2) go(1); else go(-1);
+  });
+  render();
+</script>
+
+</body>
+</html>
