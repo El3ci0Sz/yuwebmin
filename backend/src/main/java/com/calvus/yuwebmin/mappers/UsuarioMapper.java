@@ -17,7 +17,6 @@ public interface UsuarioMapper {
     @Mapping(target = "authorities", ignore = true)
     Usuario toModel(UsuarioRequestDTO requestDTO);
 
-    @Mapping(target = "pontos", source = "xpAcumulado")
     UsuarioResponseDTO toResponseDTO(Usuario usuario);
 
     @Mapping(target = "id", ignore = true)

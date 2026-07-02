@@ -1,10 +1,19 @@
 // Client-side store: sessão de autenticação (via API real) + carrinho local (localStorage).
 import { useEffect, useState } from "react";
-import { apiFetch, setToken } from "./api/client";
+import { apiFetch, getToken, setToken } from "./api/client";
 import type { Usuario } from "./api/types";
 
 export type Role = "admin" | "cliente";
-export type User = { id: number; name: string; email: string; points: number; role: Role };
+export type User = {
+  id: number;
+  name: string;
+  email: string;
+  carimbos: number;
+  recompensaDisponivel: boolean;
+  role: Role;
+};
+
+export const MAX_CARIMBOS = 7;
 type CartItem = { id: string; name: string; price: number; qty: number; emoji: string };
 
 const KEY_USER = "yuwm:user";
@@ -33,7 +42,8 @@ function toUser(dto: Usuario): User {
     id: dto.id,
     name: dto.nome,
     email: dto.email,
-    points: dto.pontos ?? dto.xpAcumulado,
+    carimbos: dto.carimbosFidelidade,
+    recompensaDisponivel: dto.recompensaDisponivel,
     role: dto.papel,
   };
 }
@@ -63,6 +73,20 @@ export const store = {
   logout: () => {
     setToken(null);
     write(KEY_USER, null);
+  },
+
+  /** Rebusca o perfil logado na API (pontos/carimbos mudam no servidor sem o
+   * front saber, ex.: quando um pedido é concluído) e atualiza o cache local. */
+  refrescarPerfil: async (): Promise<User | null> => {
+    if (!getToken()) return null;
+    try {
+      const dto = await apiFetch<Usuario>("/usuarios/me");
+      const user = toUser(dto);
+      write(KEY_USER, user);
+      return user;
+    } catch {
+      return null;
+    }
   },
 
   isAdmin: (): boolean => read<User | null>(KEY_USER, null)?.role === "admin",

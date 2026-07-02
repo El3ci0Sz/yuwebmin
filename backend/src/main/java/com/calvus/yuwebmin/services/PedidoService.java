@@ -16,6 +16,7 @@ import com.calvus.yuwebmin.dtos.request.ItemPedidoRequestDTO;
 import com.calvus.yuwebmin.dtos.request.PedidoRequestDTO;
 import com.calvus.yuwebmin.dtos.request.SubItemRequestDTO;
 import com.calvus.yuwebmin.dtos.response.PedidoResponseDTO;
+import com.calvus.yuwebmin.enums.MetodoPagamento;
 import com.calvus.yuwebmin.enums.NivelFidelidade;
 import com.calvus.yuwebmin.enums.StatusPedido;
 import com.calvus.yuwebmin.enums.TipoEntrega;
@@ -78,8 +79,17 @@ public class PedidoService {
             novoPedido.adicionarItem(novoItem);
         }
 
-        if (cliente.getRecompensaDisponivel()) {
-            novoPedido.setValorTotal(BigDecimal.ZERO);
+        if (requestDTO.getMetodoPagamento() == MetodoPagamento.CARTAO_FIDELIDADE) {
+            if (!cliente.getRecompensaDisponivel()) {
+                throw new RegraDeNegocioException("Você ainda não tem o cartão fidelidade completo.");
+            }
+            // O cupom cobre só a marmita; bebidas/sobremesas continuam no valor total
+            // (ficam pendentes de cobrança à parte, já que não há outro método selecionado).
+            BigDecimal valorMarmita = novoPedido.getItens().stream()
+                    .filter(item -> item.getModeloMarmita() != null)
+                    .map(ItemPedido::getSubTotal)
+                    .reduce(BigDecimal.ZERO, BigDecimal::add);
+            novoPedido.setValorTotal(novoPedido.getValorTotal().subtract(valorMarmita).max(BigDecimal.ZERO));
             cliente.setRecompensaDisponivel(false);
         }
 
@@ -245,17 +255,16 @@ public class PedidoService {
 
     /**
      * Calcula e atribui os pontos e a evolução de nível do cliente.
-     * Método provisório: Adiciona valores fixos até a aprovação da regra de negócio
-     * final.
+     * Regra do cartão fidelidade: 1 carimbo por pedido concluído; ao completar 7
+     * carimbos, a próxima marmita sai grátis (bebidas/sobremesas continuam
+     * cobradas normalmente).
      */
     private void processarRecompensas(Usuario cliente) {
-        // TODO: Substituir por regra do stakeholder (pontos por produto ou por valor
-        // final do pedido)
         cliente.setXpAcumulado(cliente.getXpAcumulado() + 10);
         atualizarNivelFidelidade(cliente);
 
-        // A Regra do Cartão de Carimbos (Exemplo: 10 selos = 1 prêmio)
-        final int MAX_CARIMBOS = 10;
+        // A Regra do Cartão de Carimbos: 7 selos = 1 marmita grátis
+        final int MAX_CARIMBOS = 7;
 
         // Só carimba se o cliente NÃO tiver uma recompensa pendente
         if (!cliente.getRecompensaDisponivel()) {

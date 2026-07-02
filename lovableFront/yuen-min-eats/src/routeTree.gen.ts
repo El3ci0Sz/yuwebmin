@@ -15,6 +15,7 @@ import { Route as LoginRouteImport } from './routes/login'
 import { Route as ContaRouteImport } from './routes/conta'
 import { Route as CardapioRouteImport } from './routes/cardapio'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AdminPedidosRouteImport } from './routes/admin.pedidos'
 import { Route as AdminFinanceiroRouteImport } from './routes/admin.financeiro'
 import { Route as AdminCardapioRouteImport } from './routes/admin.cardapio'
 
@@ -48,6 +49,11 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AdminPedidosRoute = AdminPedidosRouteImport.update({
+  id: '/admin/pedidos',
+  path: '/admin/pedidos',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AdminFinanceiroRoute = AdminFinanceiroRouteImport.update({
   id: '/admin/financeiro',
   path: '/admin/financeiro',
@@ -68,6 +74,7 @@ export interface FileRoutesByFullPath {
   '/pedidos': typeof PedidosRoute
   '/admin/cardapio': typeof AdminCardapioRoute
   '/admin/financeiro': typeof AdminFinanceiroRoute
+  '/admin/pedidos': typeof AdminPedidosRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -78,6 +85,7 @@ export interface FileRoutesByTo {
   '/pedidos': typeof PedidosRoute
   '/admin/cardapio': typeof AdminCardapioRoute
   '/admin/financeiro': typeof AdminFinanceiroRoute
+  '/admin/pedidos': typeof AdminPedidosRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -89,6 +97,7 @@ export interface FileRoutesById {
   '/pedidos': typeof PedidosRoute
   '/admin/cardapio': typeof AdminCardapioRoute
   '/admin/financeiro': typeof AdminFinanceiroRoute
+  '/admin/pedidos': typeof AdminPedidosRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -101,6 +110,7 @@ export interface FileRouteTypes {
     | '/pedidos'
     | '/admin/cardapio'
     | '/admin/financeiro'
+    | '/admin/pedidos'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -111,6 +121,7 @@ export interface FileRouteTypes {
     | '/pedidos'
     | '/admin/cardapio'
     | '/admin/financeiro'
+    | '/admin/pedidos'
   id:
     | '__root__'
     | '/'
@@ -121,6 +132,7 @@ export interface FileRouteTypes {
     | '/pedidos'
     | '/admin/cardapio'
     | '/admin/financeiro'
+    | '/admin/pedidos'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -132,6 +144,7 @@ export interface RootRouteChildren {
   PedidosRoute: typeof PedidosRoute
   AdminCardapioRoute: typeof AdminCardapioRoute
   AdminFinanceiroRoute: typeof AdminFinanceiroRoute
+  AdminPedidosRoute: typeof AdminPedidosRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -178,6 +191,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/admin/pedidos': {
+      id: '/admin/pedidos'
+      path: '/admin/pedidos'
+      fullPath: '/admin/pedidos'
+      preLoaderRoute: typeof AdminPedidosRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/admin/financeiro': {
       id: '/admin/financeiro'
       path: '/admin/financeiro'
@@ -204,6 +224,7 @@ const rootRouteChildren: RootRouteChildren = {
   PedidosRoute: PedidosRoute,
   AdminCardapioRoute: AdminCardapioRoute,
   AdminFinanceiroRoute: AdminFinanceiroRoute,
+  AdminPedidosRoute: AdminPedidosRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

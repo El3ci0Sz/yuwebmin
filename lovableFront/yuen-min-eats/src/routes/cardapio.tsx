@@ -30,6 +30,7 @@ type Item = {
   nome: string;
   descricao: string;
   emoji: string;
+  urlImagem?: string;
   preco?: number;
   cat: (typeof CATS)[number];
   onAdd?: () => void;
@@ -64,6 +65,7 @@ function Cardapio() {
       nome: p.nome,
       descricao: p.descricao ?? "",
       emoji: getIngredientIcon(p),
+      urlImagem: p.urlImagem,
       preco: p.preco,
       cat: p.categoria === "Bebidas" ? "Bebidas" : "Sobremesas",
       onAdd: () => {
@@ -121,7 +123,15 @@ function Cardapio() {
                 key={item.key}
                 className="rounded-2xl bg-card border border-border p-5 flex flex-col shadow-[var(--shadow-soft)]"
               >
-                <div className="text-5xl mb-3">{item.emoji}</div>
+                {item.urlImagem ? (
+                  <img
+                    src={item.urlImagem}
+                    alt={item.nome}
+                    className="h-20 w-20 object-contain mb-3"
+                  />
+                ) : (
+                  <div className="text-5xl mb-3">{item.emoji}</div>
+                )}
                 <h3 className="font-semibold">{item.nome}</h3>
                 <p className="text-sm text-muted-foreground mt-1 flex-1">{item.descricao}</p>
                 <div className="mt-4 flex items-center justify-between">

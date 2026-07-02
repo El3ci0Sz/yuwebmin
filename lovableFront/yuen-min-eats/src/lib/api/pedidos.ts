@@ -1,11 +1,21 @@
 import { apiFetch } from "./client";
-import type { MetodoPagamento, Page, Pedido } from "./types";
+import type { MetodoPagamento, Page, Pedido, StatusPedido, TipoEntrega } from "./types";
+
+export const STATUS_OPTIONS: StatusPedido[] = [
+  "Aceito",
+  "Preparando",
+  "Em entrega",
+  "Concluído",
+  "Negado",
+];
 
 export type CriarPedidoInput = {
   modeloMarmitaId: number;
   acompanhamentos: { acompanhamentoId: number; quantidade: number }[];
   produtos: { produtoId: number; quantidade: number }[];
   metodoPagamento: MetodoPagamento;
+  tipoEntrega: TipoEntrega;
+  enderecoEntregaId?: number;
 };
 
 export function criarPedido(input: CriarPedidoInput): Promise<Pedido> {
@@ -23,7 +33,12 @@ export function criarPedido(input: CriarPedidoInput): Promise<Pedido> {
 
   return apiFetch<Pedido>("/pedidos", {
     method: "POST",
-    body: JSON.stringify({ itens, metodoPagamento: input.metodoPagamento }),
+    body: JSON.stringify({
+      itens,
+      metodoPagamento: input.metodoPagamento,
+      tipoEntrega: input.tipoEntrega,
+      enderecoEntregaId: input.tipoEntrega === "Entrega" ? input.enderecoEntregaId : undefined,
+    }),
   });
 }
 
@@ -34,6 +49,13 @@ export async function listarMeusPedidos(): Promise<Pedido[]> {
 
 export function listarPedidosAdmin(): Promise<Pedido[]> {
   return apiFetch<Pedido[]>("/pedidos/admin");
+}
+
+export function atualizarStatusPedido(id: number, novoStatus: StatusPedido): Promise<Pedido> {
+  return apiFetch<Pedido>(`/pedidos/${id}/status`, {
+    method: "PATCH",
+    body: JSON.stringify({ novoStatus }),
+  });
 }
 
 export type LinhaPedido = {

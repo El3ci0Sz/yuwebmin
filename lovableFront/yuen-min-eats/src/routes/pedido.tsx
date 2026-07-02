@@ -16,7 +16,7 @@ import {
 import { SiteLayout } from "@/components/SiteLayout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { store, useStore } from "@/lib/store";
+import { MAX_CARIMBOS, store, useStore } from "@/lib/store";
 import { formatBRL, getIngredientIcon } from "@/lib/menu-data";
 import {
   listarAcompanhamentosAtivos,
@@ -24,7 +24,15 @@ import {
   listarProdutosAtivos,
 } from "@/lib/api/cardapio";
 import { criarPedido } from "@/lib/api/pedidos";
-import type { Acompanhamento, ModeloMarmita, Produto, MetodoPagamento } from "@/lib/api/types";
+import { listarMeusEnderecos } from "@/lib/api/enderecos";
+import type {
+  Acompanhamento,
+  Endereco,
+  ModeloMarmita,
+  Produto,
+  MetodoPagamento,
+  TipoEntrega,
+} from "@/lib/api/types";
 import { toast } from "sonner";
 import {
   Search,
@@ -36,6 +44,9 @@ import {
   CreditCard,
   Banknote,
   QrCode,
+  Truck,
+  Store,
+  Gift,
 } from "lucide-react";
 import bento0 from "@/assets/bento-0.png";
 import bento1 from "@/assets/bento-1.png";
@@ -174,6 +185,11 @@ function PedidoPage() {
     queryKey: ["produtos-ativos"],
     queryFn: () => listarProdutosAtivos(),
   });
+  const enderecosQuery = useQuery({
+    queryKey: ["meus-enderecos"],
+    queryFn: listarMeusEnderecos,
+    enabled: !!user,
+  });
 
   const [step, setStep] = useState<Step>("tamanho");
   const [modeloId, setModeloId] = useState<number | null>(null);
@@ -181,9 +197,13 @@ function PedidoPage() {
   const [beverages, setBeverages] = useState<Record<number, number>>({});
   const [extras, setExtras] = useState<Record<number, number>>({});
   const [payment, setPayment] = useState<MetodoPagamento | null>(null);
+  const [tipoEntrega, setTipoEntrega] = useState<TipoEntrega | null>(null);
+  const [enderecoId, setEnderecoId] = useState<number | null>(null);
   const [search, setSearch] = useState("");
   const [activeItem, setActiveItem] = useState<Acompanhamento | null>(null);
   const [submitting, setSubmitting] = useState(false);
+
+  const enderecos = enderecosQuery.data ?? [];
 
   const modelos = modelosQuery.data ?? [];
   const pratos = useMemo(() => pratosQuery.data ?? [], [pratosQuery.data]);
@@ -288,6 +308,18 @@ function PedidoPage() {
       toast.error("Selecione uma forma de pagamento");
       return;
     }
+    if (payment === "Cartão Fidelidade" && !user.recompensaDisponivel) {
+      toast.error("Você ainda não tem o cartão fidelidade completo.");
+      return;
+    }
+    if (!tipoEntrega) {
+      toast.error("Escolha entre entrega ou retirada");
+      return;
+    }
+    if (tipoEntrega === "Entrega" && !enderecoId) {
+      toast.error("Selecione um endereço de entrega");
+      return;
+    }
 
     setSubmitting(true);
     try {
@@ -305,12 +337,17 @@ function PedidoPage() {
           })),
         ],
         metodoPagamento: payment,
+        tipoEntrega,
+        enderecoEntregaId: enderecoId ?? undefined,
       });
       toast.success(`Pedido #${pedido.id} confirmado!`);
+      if (payment === "Cartão Fidelidade") store.refrescarPerfil();
       setPlate([]);
       setBeverages({});
       setExtras({});
       setPayment(null);
+      setTipoEntrega(null);
+      setEnderecoId(null);
       setModeloId(null);
       setStep("tamanho");
       navigate({ to: "/pedidos" });
@@ -394,7 +431,7 @@ function PedidoPage() {
                 }
                 setStep("bebidas");
               }}
-              nextLabel="Escolher bebidas"
+              nextLabel="Escolher bebidas e sobremesas"
             />
 
             <DragOverlay>
@@ -433,12 +470,25 @@ function PedidoPage() {
             pratos={pratos}
             beverages={beverages}
             bebidas={bebidas}
+            extras={extras}
+            sobremesas={sobremesas}
             foodTotal={foodTotal}
             beverageTotal={beverageTotal}
             extraTotal={extraTotal}
             total={total}
             payment={payment}
             onPayment={setPayment}
+            carimbos={user?.carimbos ?? 0}
+            recompensaDisponivel={user?.recompensaDisponivel ?? false}
+            tipoEntrega={tipoEntrega}
+            onTipoEntrega={(t) => {
+              setTipoEntrega(t);
+              if (t === "Retirada") setEnderecoId(null);
+            }}
+            enderecos={enderecos}
+            enderecosLoading={enderecosQuery.isLoading}
+            enderecoId={enderecoId}
+            onEnderecoId={setEnderecoId}
             onBack={() => setStep("bebidas")}
             onConfirm={confirmOrder}
             loggedIn={!!user}
@@ -629,9 +679,20 @@ function StepBebidas({
                     active ? "border-primary bg-secondary/40" : "border-border bg-card"
                   }`}
                 >
-                  <span className="text-4xl shrink-0" aria-hidden>
-                    {getIngredientIcon(e)}
-                  </span>
+                  {e.urlImagem ? (
+                    <img
+                      src={e.urlImagem}
+                      alt={e.nome}
+                      width={64}
+                      height={64}
+                      loading="lazy"
+                      className="h-16 w-16 object-contain shrink-0"
+                    />
+                  ) : (
+                    <span className="text-4xl shrink-0" aria-hidden>
+                      {getIngredientIcon(e)}
+                    </span>
+                  )}
                   <div className="flex-1 min-w-0">
                     <div className="font-semibold truncate">{e.nome}</div>
                     <div className="text-xs text-muted-foreground line-clamp-2">{e.descricao}</div>
@@ -675,12 +736,22 @@ function StepComanda({
   pratos,
   beverages,
   bebidas,
+  extras,
+  sobremesas,
   foodTotal,
   beverageTotal,
   extraTotal,
   total,
   payment,
   onPayment,
+  carimbos,
+  recompensaDisponivel,
+  tipoEntrega,
+  onTipoEntrega,
+  enderecos,
+  enderecosLoading,
+  enderecoId,
+  onEnderecoId,
   onBack,
   onConfirm,
   loggedIn,
@@ -691,17 +762,39 @@ function StepComanda({
   pratos: Acompanhamento[];
   beverages: Record<number, number>;
   bebidas: Produto[];
+  extras: Record<number, number>;
+  sobremesas: Produto[];
   foodTotal: number;
   beverageTotal: number;
   extraTotal: number;
   total: number;
   payment: MetodoPagamento | null;
   onPayment: (p: MetodoPagamento) => void;
+  carimbos: number;
+  recompensaDisponivel: boolean;
+  tipoEntrega: TipoEntrega | null;
+  onTipoEntrega: (t: TipoEntrega) => void;
+  enderecos: Endereco[];
+  enderecosLoading: boolean;
+  enderecoId: number | null;
+  onEnderecoId: (id: number) => void;
   onBack: () => void;
   onConfirm: () => void;
   loggedIn: boolean;
   submitting: boolean;
 }) {
+  const complementos = [
+    ...Object.entries(beverages).map(([id, qty]) => ({
+      item: bebidas.find((x) => x.id === Number(id)),
+      qty,
+    })),
+    ...Object.entries(extras).map(([id, qty]) => ({
+      item: sobremesas.find((x) => x.id === Number(id)),
+      qty,
+    })),
+  ].filter((c): c is { item: Produto; qty: number } => !!c.item);
+  const usandoFidelidade = payment === "Cartão Fidelidade";
+  const totalExibido = usandoFidelidade ? total - foodTotal : total;
   return (
     <div className="mt-6">
       <h1 className="text-2xl md:text-3xl font-bold">Comanda</h1>
@@ -714,7 +807,17 @@ function StepComanda({
             <div className="flex justify-between py-2 border-b border-border">
               <span className="text-muted-foreground">Marmita</span>
               <span className="font-medium">
-                {cfg.nome} · {formatBRL(cfg.preco)}
+                {cfg.nome} ·{" "}
+                {usandoFidelidade ? (
+                  <>
+                    <span className="line-through text-muted-foreground">
+                      {formatBRL(cfg.preco)}
+                    </span>{" "}
+                    <span className="text-primary">Grátis</span>
+                  </>
+                ) : (
+                  formatBRL(cfg.preco)
+                )}
               </span>
             </div>
 
@@ -741,27 +844,23 @@ function StepComanda({
               </ul>
             </div>
 
-            {Object.keys(beverages).length > 0 && (
+            {complementos.length > 0 && (
               <div className="pt-4">
                 <div className="text-xs uppercase tracking-wide text-muted-foreground mb-2">
                   Bebidas e sobremesas
                 </div>
                 <ul className="space-y-1.5">
-                  {Object.entries(beverages).map(([id, qty]) => {
-                    const b = bebidas.find((x) => x.id === Number(id));
-                    if (!b) return null;
-                    return (
-                      <li key={id} className="flex justify-between text-sm">
-                        <span className="flex items-center gap-2">
-                          <span>{getIngredientIcon(b)}</span>
-                          <span>
-                            {qty}× {b.nome}
-                          </span>
+                  {complementos.map(({ item, qty }) => (
+                    <li key={item.id} className="flex justify-between text-sm">
+                      <span className="flex items-center gap-2">
+                        <span>{getIngredientIcon(item)}</span>
+                        <span>
+                          {qty}× {item.nome}
                         </span>
-                        <span className="text-muted-foreground">{formatBRL(b.preco * qty)}</span>
-                      </li>
-                    );
-                  })}
+                      </span>
+                      <span className="text-muted-foreground">{formatBRL(item.preco * qty)}</span>
+                    </li>
+                  ))}
                 </ul>
               </div>
             )}
@@ -769,7 +868,7 @@ function StepComanda({
             <div className="mt-4 pt-3 border-t border-border space-y-1 text-sm">
               <div className="flex justify-between">
                 <span className="text-muted-foreground">Marmita</span>
-                <span>{formatBRL(foodTotal)}</span>
+                <span>{usandoFidelidade ? "Grátis" : formatBRL(foodTotal)}</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-muted-foreground">Bebidas e sobremesas</span>
@@ -780,7 +879,70 @@ function StepComanda({
         </div>
 
         <aside className="rounded-2xl bg-card border border-border p-6 h-fit lg:sticky lg:top-20 shadow-[var(--shadow-soft)]">
-          <h2 className="font-semibold">Forma de pagamento</h2>
+          <h2 className="font-semibold">Entrega ou retirada?</h2>
+          <div className="mt-3 grid grid-cols-2 gap-2">
+            <button
+              onClick={() => onTipoEntrega("Retirada")}
+              className={`rounded-xl border p-3 text-left transition-colors ${
+                tipoEntrega === "Retirada"
+                  ? "border-primary bg-secondary"
+                  : "border-border hover:bg-secondary/50"
+              }`}
+            >
+              <Store className="h-5 w-5 text-primary mb-1" />
+              <div className="text-xs font-medium">Retirada</div>
+            </button>
+            <button
+              onClick={() => onTipoEntrega("Entrega")}
+              className={`rounded-xl border p-3 text-left transition-colors ${
+                tipoEntrega === "Entrega"
+                  ? "border-primary bg-secondary"
+                  : "border-border hover:bg-secondary/50"
+              }`}
+            >
+              <Truck className="h-5 w-5 text-primary mb-1" />
+              <div className="text-xs font-medium">Entrega</div>
+            </button>
+          </div>
+
+          {tipoEntrega === "Entrega" && (
+            <div className="mt-3">
+              <div className="text-xs uppercase tracking-wide text-muted-foreground mb-2">
+                Endereço
+              </div>
+              {enderecosLoading ? (
+                <p className="text-xs text-muted-foreground">Carregando endereços...</p>
+              ) : enderecos.length === 0 ? (
+                <p className="text-xs text-muted-foreground">
+                  Nenhum endereço cadastrado.{" "}
+                  <Link to="/conta" className="text-primary underline">
+                    Cadastrar endereço
+                  </Link>
+                </p>
+              ) : (
+                <div className="space-y-2">
+                  {enderecos.map((e) => (
+                    <button
+                      key={e.id}
+                      onClick={() => onEnderecoId(e.id)}
+                      className={`w-full text-left rounded-xl border p-2.5 text-xs transition-colors ${
+                        enderecoId === e.id
+                          ? "border-primary bg-secondary"
+                          : "border-border hover:bg-secondary/50"
+                      }`}
+                    >
+                      <div className="font-medium">
+                        {e.rua}, {e.numero}
+                      </div>
+                      <div className="text-muted-foreground">{e.bairro}</div>
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+
+          <h2 className="font-semibold mt-5 pt-5 border-t border-border">Forma de pagamento</h2>
           <div className="mt-3 grid grid-cols-2 gap-2">
             {PAYMENT_METHODS.map((p) => {
               const Icon = p.icon;
@@ -800,16 +962,40 @@ function StepComanda({
             })}
           </div>
 
+          <button
+            onClick={() => recompensaDisponivel && onPayment("Cartão Fidelidade")}
+            disabled={!recompensaDisponivel}
+            className={`mt-2 w-full flex items-center gap-3 rounded-xl border p-3 text-left transition-colors ${
+              !recompensaDisponivel
+                ? "opacity-50 cursor-not-allowed border-border"
+                : payment === "Cartão Fidelidade"
+                  ? "border-primary bg-secondary"
+                  : "border-border hover:bg-secondary/50"
+            }`}
+          >
+            <Gift className="h-5 w-5 text-primary shrink-0" />
+            <div className="flex-1 min-w-0">
+              <div className="text-xs font-medium">Cartão Fidelidade</div>
+              <div className="text-[10px] text-muted-foreground">
+                {recompensaDisponivel
+                  ? "Marmita grátis disponível · resto do pedido fica pendente"
+                  : `${carimbos}/${MAX_CARIMBOS} pontos`}
+              </div>
+            </div>
+          </button>
+
           <div className="mt-5 pt-4 border-t border-border flex justify-between text-lg">
             <span className="font-semibold">Total</span>
-            <span className="font-bold text-primary">{formatBRL(total)}</span>
+            <span className="font-bold text-primary">{formatBRL(totalExibido)}</span>
           </div>
 
           <Button
             onClick={onConfirm}
             className="w-full mt-4 rounded-full"
             size="lg"
-            disabled={!payment || submitting}
+            disabled={
+              !payment || !tipoEntrega || (tipoEntrega === "Entrega" && !enderecoId) || submitting
+            }
           >
             {submitting ? "Enviando..." : "Confirmar pedido"}
           </Button>

@@ -200,7 +200,7 @@ function AdminFinanceiro() {
                     {formatBRL(sum(week_orders))}
                   </span>
                 </div>
-                <div className="mt-5 flex items-end gap-2 h-40">
+                <div className="mt-5 flex gap-2 h-40">
                   {dailySeries.map((d, i) => {
                     const h = (d.total / maxDaily) * 100;
                     return (

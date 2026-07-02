@@ -11,7 +11,8 @@ public enum MetodoPagamento {
     PIX("Pix"),
     CARTAO_CREDITO("Crédito"),
     CARTAO_DEBITO("Débito"),
-    DINHEIRO("Dinheiro");
+    DINHEIRO("Dinheiro"),
+    CARTAO_FIDELIDADE("Cartão Fidelidade");
 
     private final String rotulo;
 

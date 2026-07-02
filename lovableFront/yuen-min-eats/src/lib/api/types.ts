@@ -5,9 +5,11 @@ export type Papel = "admin" | "cliente";
 
 export type StatusPedido = "Aceito" | "Preparando" | "Em entrega" | "Concluído" | "Negado";
 
-export type MetodoPagamento = "Pix" | "Crédito" | "Débito" | "Dinheiro";
+export type MetodoPagamento = "Pix" | "Crédito" | "Débito" | "Dinheiro" | "Cartão Fidelidade";
 
 export type CategoriaProduto = "Bebidas" | "Sobremesas" | "Porção Kilo" | "Diversos";
+
+export type TipoEntrega = "Entrega" | "Retirada";
 
 export type Endereco = {
   id: number;
@@ -28,7 +30,6 @@ export type Usuario = {
   carimbosFidelidade: number;
   recompensaDisponivel: boolean;
   xpAcumulado: number;
-  pontos: number;
   nivel: string;
   enderecos: Endereco[];
 };
@@ -81,7 +82,7 @@ export type Pedido = {
   dataPedido: string;
   status: StatusPedido;
   valorTotal: number;
-  tipoEntrega: string;
+  tipoEntrega: TipoEntrega;
   metodoPagamento: MetodoPagamento;
   nomeCliente: string;
   enderecoEntrega?: Endereco;
