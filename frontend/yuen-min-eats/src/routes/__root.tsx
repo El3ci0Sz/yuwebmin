@@ -73,14 +73,21 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Lovable App" },
-      { name: "description", content: "Lovable Generated Project" },
-      { name: "author", content: "Lovable" },
-      { property: "og:title", content: "Lovable App" },
-      { property: "og:description", content: "Lovable Generated Project" },
+      { title: "YuWebMin · Restaurante Vegetariano Yuen Min" },
+      {
+        name: "description",
+        content:
+          "Cardápio digital, montagem de marmita e fidelidade do restaurante vegetariano Yuen Min.",
+      },
+      { name: "author", content: "YuWebMin" },
+      { property: "og:title", content: "YuWebMin · Restaurante Vegetariano Yuen Min" },
+      {
+        property: "og:description",
+        content:
+          "Cardápio digital, montagem de marmita e fidelidade do restaurante vegetariano Yuen Min.",
+      },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
-      { name: "twitter:site", content: "@Lovable" },
     ],
     links: [
       {
