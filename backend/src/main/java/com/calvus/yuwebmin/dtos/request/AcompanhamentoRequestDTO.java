@@ -15,4 +15,6 @@ public class AcompanhamentoRequestDTO {
 
     private Boolean ativo;
 
+    private String emoji;
+
 }

@@ -9,4 +9,5 @@ public class AcompanhamentoResponseDTO {
     private String descricao;
     private Boolean itemFixo;
     private Boolean ativo;
+    private String emoji;
 }

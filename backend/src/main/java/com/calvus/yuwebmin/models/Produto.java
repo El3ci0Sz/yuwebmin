@@ -42,4 +42,7 @@ public class Produto {
 
     @Column(name = "url_imagem", length = 500)
     private String urlImagem;
+
+    @Column(length = 10)
+    private String emoji;
 }

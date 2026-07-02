@@ -28,4 +28,5 @@ public class ProdutoRequestDTO {
     private Boolean itemFixo = false;
     private Boolean ativo = true;
     private String urlImagem;
+    private String emoji;
 }
