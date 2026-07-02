@@ -30,7 +30,7 @@ public class TokenService {
                     .withIssuer("YuWebMin API") // Quem emitiu o token
                     .withSubject(usuario.getEmail()) // Quem é o dono do token
                     .withClaim("papel", usuario.getPapel().name()) // Guardamos o papel dentro do token para facilitar!
-                    .withExpiresAt(dataExpiracao()) // Data de validade (ex: 2 horas)
+                    .withExpiresAt(dataExpiracao()) // Data de validade (ex: 6 horas)
                     .sign(algoritmo); // Assina e finaliza
 
         } catch (JWTCreationException exception) {
@@ -51,8 +51,8 @@ public class TokenService {
         }
     }
 
-    // Token nao pode durar para sempre, ele vai durar 2 horas
+    // Token nao pode durar para sempre, ele vai durar 6 horas
     private Instant dataExpiracao() {
-        return Instant.now().plus(2, ChronoUnit.HOURS);
+        return Instant.now().plus(6, ChronoUnit.HOURS);
     }
 }

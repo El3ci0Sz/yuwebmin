@@ -29,18 +29,18 @@ public class SecurityFilter extends OncePerRequestFilter {
         String tokenJWT = recuperarToken(request);
 
         if (tokenJWT != null) {
-            String emailDonoDoToken = tokenService.getSubject(tokenJWT);
-            var usuarioOpt = usuarioRepository.findByEmail(emailDonoDoToken);
-
-            if (usuarioOpt.isEmpty()) {
-                response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-                return; // interrompe a chain
+            try {
+                String emailDonoDoToken = tokenService.getSubject(tokenJWT);
+                usuarioRepository.findByEmail(emailDonoDoToken).ifPresent(usuario -> {
+                    var authentication = new UsernamePasswordAuthenticationToken(
+                            usuario, null, usuario.getAuthorities());
+                    SecurityContextHolder.getContext().setAuthentication(authentication);
+                });
+            } catch (RuntimeException tokenInvalidoOuExpirado) {
+                // Token inválido/expirado: segue a requisição como não autenticada em vez de
+                // derrubar tudo com 500. As regras do SecurityConfigurations decidem se a rota
+                // exige login (401/403) ou é pública.
             }
-
-            var usuario = usuarioOpt.get();
-            var authentication = new UsernamePasswordAuthenticationToken(
-                    usuario, null, usuario.getAuthorities());
-            SecurityContextHolder.getContext().setAuthentication(authentication);
         }
 
         filterChain.doFilter(request, response);
