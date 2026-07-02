@@ -65,11 +65,11 @@ O projeto utiliza **Docker** para garantir que o ambiente de desenvolvimento sej
 
 ## 🚀 Como rodar o projeto localmente
 
-1. **Clone o repositório:**
+**1. Clone o repositório:**
    
-   https://github.com/El3ci0Sz/yuwebmin.git
+https://github.com/El3ci0Sz/yuwebmin.git
    
-2. **Para executar:**
+**2. Para executar:**
    
 **Na primeira vez:**
 
