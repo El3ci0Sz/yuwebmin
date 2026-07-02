@@ -40,21 +40,22 @@ A arquitetura do projeto foi desenhada separando completamente o Frontend do Bac
 ### 👤 Área do Cliente
 - [x] **Catálogo Dinâmico:** Listagem de pratos prontos, acompanhamentos, bebidas e sobremesas ativos no dia.
 - [x] **Montagem de Marmita Interativa:** Interface visual (drag-and-drop) com validação de limite de ingredientes baseada no tamanho escolhido.
-- [x] **Gestão de Endereços:** Cadastro de múltiplos endereços com autocompletar via API do ViaCEP.
+- [x] **Gestão de Endereços:** Cadastro de múltiplos endereços
+- [ ] **Auto completar os endereços:** Autocompletar via API do ViaCEP.
 - [x] **Checkout e Carrinho:** Escolha de entrega ou retirada, cálculo de troco e fechamento de pedido.
 - [x] **Cartão Fidelidade Digital:** Sistema automático que contabiliza pedidos e libera recompensas (marmita grátis).
 - [x] **Acompanhamento de Status:** Histórico de pedidos e visualização do status atual.
 
 ### ⚙️ Área Administrativa (Restaurante)
 - [x] **Painel KDS (Kitchen Display System):** Tela para a cozinha aceitar, preparar e despachar pedidos, mudando o status em tempo real.
-- [x] **Notificações via WhatsApp:** Geração de mensagens automáticas de status (ex: "Saiu para entrega") prontas para envio em um clique.
-- [x] **Centro de Comando:** Painel de "toggles" para ativar/desativar rapidamente a disponibilidade de ingredientes e pratos para o dia.
+- [ ] **Notificações via WhatsApp:** Geração de mensagens automáticas de status (ex: "Saiu para entrega") prontas para envio em um clique.
+- [ ] **Centro de Comando:** Painel de "toggles" para ativar/desativar rapidamente a disponibilidade de ingredientes e pratos para o dia.
 - [x] **Gestão de Cardápio (CRUD):** Criação e edição de modelos de marmitas, regras de preços e produtos avulsos.
 - [x] **Dashboard Financeiro:** Indicadores de faturamento, ticket médio e volume de vendas.
 
 ---
 
-## 🚀 Como rodar o projeto localmente
+## Como rodar o projeto localmente
 
 O projeto utiliza **Docker** para garantir que o ambiente de desenvolvimento seja idêntico para todos os membros da equipe, sem necessidade de instalar o MySQL ou o Java manualmente na máquina.
 
@@ -62,8 +63,6 @@ O projeto utiliza **Docker** para garantir que o ambiente de desenvolvimento sej
 * Ter o [Docker Desktop](https://www.docker.com/products/docker-desktop/) instalado e rodando.
 * (Opcional) VS Code com a extensão *Live Server* para testar protótipos de frontend em HTML.
 * **(OBRIGATÓRIO)** é obrigatorio ter um arquivo .env com credencias para conseguir rodar o projeto, so os desenvolvedores tem acesso a esse arquivo.
-
-## 🚀 Como rodar o projeto localmente
 
 **1. Clone o repositório:**
    
