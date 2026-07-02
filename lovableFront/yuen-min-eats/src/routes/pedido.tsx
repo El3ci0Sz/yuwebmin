@@ -1,5 +1,6 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import {
   DndContext,
   useDraggable,
@@ -15,19 +16,27 @@ import {
 import { SiteLayout } from "@/components/SiteLayout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { store, useStore, type SizeKey, type PaymentMethod } from "@/lib/store";
+import { store, useStore } from "@/lib/store";
+import { formatBRL, getIngredientIcon } from "@/lib/menu-data";
 import {
-  MENU,
-  BEVERAGES,
-  EXTRAS,
-  formatBRL,
-  getIngredientIcon,
-  type MenuItem,
-  type Beverage,
-  type Extra,
-} from "@/lib/menu-data";
+  listarAcompanhamentosAtivos,
+  listarModelosAtivos,
+  listarProdutosAtivos,
+} from "@/lib/api/cardapio";
+import { criarPedido } from "@/lib/api/pedidos";
+import type { Acompanhamento, ModeloMarmita, Produto, MetodoPagamento } from "@/lib/api/types";
 import { toast } from "sonner";
-import { Search, ArrowLeft, ArrowRight, Check, X, Wallet, CreditCard, Banknote, QrCode } from "lucide-react";
+import {
+  Search,
+  ArrowLeft,
+  ArrowRight,
+  Check,
+  X,
+  Wallet,
+  CreditCard,
+  Banknote,
+  QrCode,
+} from "lucide-react";
 import bento0 from "@/assets/bento-0.png";
 import bento1 from "@/assets/bento-1.png";
 import bento2 from "@/assets/bento-2.png";
@@ -50,24 +59,17 @@ export const Route = createFileRoute("/pedido")({
 
 const BENTO_IMAGES = [bento0, bento1, bento2, bento3, bento4, bento5, bento6, bento7, bento8];
 
-const SIZES: Record<SizeKey, { label: string; maxTypes: number; portion: number; desc: string }> = {
-  P: { label: "Marmita P", maxTypes: 4, portion: 1, desc: "Até 4 tipos · 1 porção cada" },
-  M: { label: "Marmita M", maxTypes: 6, portion: 1.5, desc: "Até 6 tipos · 1,5 porções cada" },
-  G: { label: "Marmita G", maxTypes: 8, portion: 2, desc: "Até 8 tipos · 2 porções cada" },
-  Personalizado: { label: "Personalizado", maxTypes: 99, portion: 1, desc: "Quantos pratos quiser · R$ 59,90/kg" },
-};
-
-type PlateItem = { id: string; qty: number };
+type PlateItem = { id: number; qty: number };
 type Step = "tamanho" | "prato" | "bebidas" | "comanda";
 
-const PAYMENT_METHODS: { id: PaymentMethod; label: string; icon: React.ElementType }[] = [
+const PAYMENT_METHODS: { id: MetodoPagamento; label: string; icon: React.ElementType }[] = [
   { id: "Pix", label: "Pix", icon: QrCode },
   { id: "Crédito", label: "Cartão de Crédito", icon: CreditCard },
   { id: "Débito", label: "Cartão de Débito", icon: Wallet },
   { id: "Dinheiro", label: "Dinheiro", icon: Banknote },
 ];
 
-function DraggableItem({ item, disabled }: { item: MenuItem; disabled: boolean }) {
+function DraggableItem({ item, disabled }: { item: Acompanhamento; disabled: boolean }) {
   const { attributes, listeners, setNodeRef, isDragging } = useDraggable({
     id: `menu-${item.id}`,
     data: { item },
@@ -85,10 +87,11 @@ function DraggableItem({ item, disabled }: { item: MenuItem; disabled: boolean }
           : "border-border hover:border-primary hover:shadow-[var(--shadow-soft)] cursor-grab active:cursor-grabbing"
       } ${isDragging ? "opacity-30" : ""}`}
     >
-      <span className="text-2xl shrink-0" aria-hidden>{getIngredientIcon(item)}</span>
+      <span className="text-2xl shrink-0" aria-hidden>
+        {getIngredientIcon(item)}
+      </span>
       <span className="min-w-0 flex-1">
-        <span className="block text-sm font-medium truncate">{item.name}</span>
-        <span className="block text-xs text-muted-foreground">{formatBRL(item.price)}</span>
+        <span className="block text-sm font-medium truncate">{item.nome}</span>
       </span>
     </button>
   );
@@ -96,10 +99,12 @@ function DraggableItem({ item, disabled }: { item: MenuItem; disabled: boolean }
 
 function Bento({
   items,
+  pratos,
   onRemove,
 }: {
   items: PlateItem[];
-  onRemove: (id: string) => void;
+  pratos: Acompanhamento[];
+  onRemove: (id: number) => void;
 }) {
   const { isOver, setNodeRef } = useDroppable({ id: "plate" });
   const totalQty = items.reduce((s, p) => s + p.qty, 0);
@@ -133,17 +138,17 @@ function Bento({
       {items.length > 0 && (
         <ul className="mt-4 flex flex-wrap gap-2 justify-center">
           {items.map((p) => {
-            const item = MENU.find((m) => m.id === p.id);
+            const item = pratos.find((m) => m.id === p.id);
             if (!item) return null;
             return (
               <li key={p.id}>
                 <button
                   onClick={() => onRemove(p.id)}
                   className="group inline-flex items-center gap-1.5 rounded-full bg-secondary text-foreground px-3 py-1.5 text-xs font-medium hover:bg-destructive/10 hover:text-destructive transition-colors"
-                  aria-label={`Remover ${item.name}`}
+                  aria-label={`Remover ${item.nome}`}
                 >
                   <span className="text-base">{getIngredientIcon(item)}</span>
-                  <span className="truncate max-w-[120px]">{item.name}</span>
+                  <span className="truncate max-w-[120px]">{item.nome}</span>
                   {p.qty > 1 && <span className="font-bold">×{p.qty}</span>}
                   <X className="h-3 w-3 opacity-50 group-hover:opacity-100" />
                 </button>
@@ -159,81 +164,74 @@ function Bento({
 function PedidoPage() {
   const navigate = useNavigate();
   const user = useStore(() => store.getUser());
-  const cardapio = useStore(() => store.getCardapioConfig());
+
+  const modelosQuery = useQuery({ queryKey: ["modelos-ativos"], queryFn: listarModelosAtivos });
+  const pratosQuery = useQuery({
+    queryKey: ["acompanhamentos-ativos"],
+    queryFn: () => listarAcompanhamentosAtivos(),
+  });
+  const produtosQuery = useQuery({
+    queryKey: ["produtos-ativos"],
+    queryFn: () => listarProdutosAtivos(),
+  });
 
   const [step, setStep] = useState<Step>("tamanho");
-  const [size, setSize] = useState<SizeKey | null>(null);
+  const [modeloId, setModeloId] = useState<number | null>(null);
   const [plate, setPlate] = useState<PlateItem[]>([]);
-  const [beverages, setBeverages] = useState<Record<string, number>>({});
-  const [extras, setExtras] = useState<Record<string, number>>({});
-  const [payment, setPayment] = useState<PaymentMethod | null>(null);
+  const [beverages, setBeverages] = useState<Record<number, number>>({});
+  const [extras, setExtras] = useState<Record<number, number>>({});
+  const [payment, setPayment] = useState<MetodoPagamento | null>(null);
   const [search, setSearch] = useState("");
-  const [activeItem, setActiveItem] = useState<MenuItem | null>(null);
+  const [activeItem, setActiveItem] = useState<Acompanhamento | null>(null);
+  const [submitting, setSubmitting] = useState(false);
 
-  const cfg = size ? SIZES[size] : null;
-  const typesCount = plate.length;
-  const isFull = cfg ? typesCount >= cfg.maxTypes : false;
-
-  const availableSizes = useMemo<SizeKey[]>(
-    () => (["P", "M", "G", "Personalizado"] as SizeKey[]).filter((k) => cardapio.activeSizes.includes(k)),
-    [cardapio.activeSizes]
+  const modelos = modelosQuery.data ?? [];
+  const pratos = useMemo(() => pratosQuery.data ?? [], [pratosQuery.data]);
+  const produtos = useMemo(() => produtosQuery.data ?? [], [produtosQuery.data]);
+  const bebidas = useMemo(() => produtos.filter((p) => p.categoria === "Bebidas"), [produtos]);
+  const sobremesas = useMemo(
+    () => produtos.filter((p) => p.categoria === "Sobremesas"),
+    [produtos],
   );
 
-  const foodItems = useMemo(
-    () => MENU.filter((m) => m.category !== "Bebidas" && cardapio.activeMenuIds.includes(m.id)),
-    [cardapio.activeMenuIds]
-  );
+  const cfg = modelos.find((m) => m.id === modeloId) ?? null;
+  const totalPortions = plate.reduce((s, p) => s + p.qty, 0);
+  const isFull = cfg ? totalPortions >= cfg.limiteAcompanhamentos : false;
 
-  const availableBeverages = useMemo(
-    () => BEVERAGES.filter((b) => cardapio.activeBeverageIds.includes(b.id)),
-    [cardapio.activeBeverageIds]
-  );
-  const availableExtras = useMemo(
-    () => EXTRAS.filter((e) => cardapio.activeExtraIds.includes(e.id)),
-    [cardapio.activeExtraIds]
-  );
-
-
-  const filteredMenu = useMemo(() => {
+  const filteredPratos = useMemo(() => {
     const q = search.trim().toLowerCase();
-    const base = [...foodItems].sort((a, b) => a.name.localeCompare(b.name, "pt-BR"));
+    const base = [...pratos].sort((a, b) => a.nome.localeCompare(b.nome, "pt-BR"));
     if (!q) return base;
-    return base.filter((m) => m.name.toLowerCase().includes(q) || m.description.toLowerCase().includes(q));
-  }, [foodItems, search]);
+    return base.filter(
+      (m) => m.nome.toLowerCase().includes(q) || (m.descricao ?? "").toLowerCase().includes(q),
+    );
+  }, [pratos, search]);
 
-  const foodTotal = useMemo(() => {
-    if (!cfg) return 0;
-    return plate.reduce((s, p) => {
-      const item = MENU.find((m) => m.id === p.id);
-      if (!item) return s;
-      return s + item.price * p.qty * cfg.portion;
-    }, 0);
-  }, [plate, cfg]);
+  const foodTotal = cfg?.preco ?? 0;
 
   const beverageTotal = useMemo(() => {
     return Object.entries(beverages).reduce((s, [id, qty]) => {
-      const b = BEVERAGES.find((x) => x.id === id);
-      return b ? s + b.price * qty : s;
+      const b = bebidas.find((x) => x.id === Number(id));
+      return b ? s + b.preco * qty : s;
     }, 0);
-  }, [beverages]);
+  }, [beverages, bebidas]);
 
   const extraTotal = useMemo(() => {
     return Object.entries(extras).reduce((s, [id, qty]) => {
-      const e = EXTRAS.find((x) => x.id === id);
-      return e ? s + e.price * qty : s;
+      const e = sobremesas.find((x) => x.id === Number(id));
+      return e ? s + e.preco * qty : s;
     }, 0);
-  }, [extras]);
+  }, [extras, sobremesas]);
 
   const total = foodTotal + beverageTotal + extraTotal;
 
-
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
-    useSensor(TouchSensor, { activationConstraint: { delay: 120, tolerance: 8 } })
+    useSensor(TouchSensor, { activationConstraint: { delay: 120, tolerance: 8 } }),
   );
 
   function handleDragStart(e: DragStartEvent) {
-    const it = e.active.data.current?.item as MenuItem | undefined;
+    const it = e.active.data.current?.item as Acompanhamento | undefined;
     setActiveItem(it ?? null);
   }
 
@@ -241,29 +239,29 @@ function PedidoPage() {
     setActiveItem(null);
     if (!cfg) return;
     if (e.over?.id !== "plate") return;
-    const item = e.active.data.current?.item as MenuItem | undefined;
+    const item = e.active.data.current?.item as Acompanhamento | undefined;
     if (!item) return;
+    if (totalPortions >= cfg.limiteAcompanhamentos) {
+      toast.error(
+        `${cfg.nome} permite até ${cfg.limiteAcompanhamentos} porções de acompanhamentos.`,
+      );
+      return;
+    }
     setPlate((prev) => {
       const found = prev.find((p) => p.id === item.id);
-      if (found) {
-        return prev.map((p) => (p.id === item.id ? { ...p, qty: p.qty + 1 } : p));
-      }
-      if (prev.length >= cfg.maxTypes) {
-        toast.error(`${cfg.label} permite até ${cfg.maxTypes} tipos.`);
-        return prev;
-      }
-      toast.success(`${item.name} adicionado ao bento`);
+      if (found) return prev.map((p) => (p.id === item.id ? { ...p, qty: p.qty + 1 } : p));
+      toast.success(`${item.nome} adicionado ao bento`);
       return [...prev, { id: item.id, qty: 1 }];
     });
   }
 
-  function removeOne(id: string) {
+  function removeOne(id: number) {
     setPlate((prev) =>
-      prev.map((p) => (p.id === id ? { ...p, qty: p.qty - 1 } : p)).filter((p) => p.qty > 0)
+      prev.map((p) => (p.id === id ? { ...p, qty: p.qty - 1 } : p)).filter((p) => p.qty > 0),
     );
   }
 
-  function adjBev(id: string, delta: number) {
+  function adjBev(id: number, delta: number) {
     setBeverages((prev) => {
       const next = { ...prev, [id]: Math.max(0, (prev[id] ?? 0) + delta) };
       if (next[id] === 0) delete next[id];
@@ -271,7 +269,7 @@ function PedidoPage() {
     });
   }
 
-  function adjExtra(id: string, delta: number) {
+  function adjExtra(id: number, delta: number) {
     setExtras((prev) => {
       const next = { ...prev, [id]: Math.max(0, (prev[id] ?? 0) + delta) };
       if (next[id] === 0) delete next[id];
@@ -279,46 +277,49 @@ function PedidoPage() {
     });
   }
 
-  function confirmOrder() {
+  async function confirmOrder() {
     if (!user) {
       toast.info("Faça login para concluir o pedido");
       navigate({ to: "/login" });
       return;
     }
-    if (!size || !cfg) return;
+    if (!cfg) return;
     if (!payment) {
       toast.error("Selecione uma forma de pagamento");
       return;
     }
 
-    const foodCart = plate.map((p) => {
-      const m = MENU.find((mm) => mm.id === p.id)!;
-      return { id: m.id, name: m.name, price: m.price, emoji: getIngredientIcon(m), qty: p.qty };
-    });
-    const bevCart = Object.entries(beverages).map(([id, qty]) => {
-      const b = BEVERAGES.find((x) => x.id === id)!;
-      return { id: b.id, name: b.name, price: b.price, emoji: "🥤", qty };
-    });
-    const extraCart = Object.entries(extras).map(([id, qty]) => {
-      const e = EXTRAS.find((x) => x.id === id)!;
-      return { id: e.id, name: e.name, price: e.price, emoji: e.emoji, qty };
-    });
-
-    // Apply portion multiplier only to food items
-    const scaledFood = foodCart.map((i) => ({ ...i, price: +(i.price * cfg.portion).toFixed(2) }));
-    const allItems = [...scaledFood, ...bevCart, ...extraCart];
-
-    const o = store.placeCustomOrder(allItems, size, 1, payment);
-    toast.success(`Pedido ${o.id} confirmado!`);
-    setPlate([]);
-    setBeverages({});
-    setExtras({});
-    setPayment(null);
-    setSize(null);
-    setStep("tamanho");
-    navigate({ to: "/pedidos" });
+    setSubmitting(true);
+    try {
+      const pedido = await criarPedido({
+        modeloMarmitaId: cfg.id,
+        acompanhamentos: plate.map((p) => ({ acompanhamentoId: p.id, quantidade: p.qty })),
+        produtos: [
+          ...Object.entries(beverages).map(([id, qty]) => ({
+            produtoId: Number(id),
+            quantidade: qty,
+          })),
+          ...Object.entries(extras).map(([id, qty]) => ({
+            produtoId: Number(id),
+            quantidade: qty,
+          })),
+        ],
+        metodoPagamento: payment,
+      });
+      toast.success(`Pedido #${pedido.id} confirmado!`);
+      setPlate([]);
+      setBeverages({});
+      setExtras({});
+      setPayment(null);
+      setModeloId(null);
+      setStep("tamanho");
+      navigate({ to: "/pedidos" });
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Não foi possível confirmar o pedido.");
+    } finally {
+      setSubmitting(false);
+    }
   }
-
 
   return (
     <SiteLayout>
@@ -327,15 +328,16 @@ function PedidoPage() {
 
         {step === "tamanho" && (
           <StepTamanho
-            current={size}
-            available={availableSizes}
-            onSelect={(s) => {
-              setSize(s);
+            modelos={modelos}
+            isLoading={modelosQuery.isLoading}
+            isError={modelosQuery.isError}
+            current={modeloId}
+            onSelect={(id) => {
+              setModeloId(id);
               setStep("prato");
             }}
           />
         )}
-
 
         {step === "prato" && cfg && (
           <DndContext sensors={sensors} onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
@@ -343,14 +345,14 @@ function PedidoPage() {
               <div>
                 <h1 className="text-2xl md:text-3xl font-bold">Monte seu bento</h1>
                 <p className="text-sm text-muted-foreground">
-                  {cfg.label} · {cfg.desc}
+                  {cfg.nome} · {formatBRL(cfg.preco)} · até {cfg.limiteAcompanhamentos} porções de
+                  acompanhamento
                 </p>
               </div>
               <div className="text-sm">
-                <span className="text-muted-foreground">Pratos no bento: </span>
+                <span className="text-muted-foreground">Porções no bento: </span>
                 <span className={`font-bold ${isFull ? "text-primary" : ""}`}>
-                  {typesCount}
-                  {size !== "Personalizado" && `/${cfg.maxTypes}`}
+                  {totalPortions}/{cfg.limiteAcompanhamentos}
                 </span>
               </div>
             </div>
@@ -367,23 +369,19 @@ function PedidoPage() {
                   />
                 </div>
                 <div className="grid grid-cols-2 lg:grid-cols-1 gap-2 max-h-[55vh] overflow-y-auto pr-1">
-                  {filteredMenu.length === 0 && (
+                  {filteredPratos.length === 0 && (
                     <p className="col-span-full text-sm text-muted-foreground text-center py-8">
                       Nenhum prato encontrado.
                     </p>
                   )}
-                  {filteredMenu.map((item) => (
-                    <DraggableItem
-                      key={item.id}
-                      item={item}
-                      disabled={isFull && !plate.find((p) => p.id === item.id)}
-                    />
+                  {filteredPratos.map((item) => (
+                    <DraggableItem key={item.id} item={item} disabled={isFull} />
                   ))}
                 </div>
               </div>
 
               <div className="order-1 lg:order-2 flex flex-col items-center justify-start">
-                <Bento items={plate} onRemove={removeOne} />
+                <Bento items={plate} pratos={pratos} onRemove={removeOne} />
               </div>
             </div>
 
@@ -403,7 +401,7 @@ function PedidoPage() {
               {activeItem ? (
                 <div className="flex items-center gap-3 rounded-xl border border-primary bg-card p-3 shadow-lg">
                   <span className="text-2xl">{getIngredientIcon(activeItem)}</span>
-                  <span className="text-sm font-medium">{activeItem.name}</span>
+                  <span className="text-sm font-medium">{activeItem.nome}</span>
                 </div>
               ) : null}
             </DragOverlay>
@@ -416,8 +414,8 @@ function PedidoPage() {
             adj={adjBev}
             extras={extras}
             adjExtra={adjExtra}
-            availableBeverages={availableBeverages}
-            availableExtras={availableExtras}
+            availableBeverages={bebidas}
+            availableExtras={sobremesas}
           />
         )}
         {step === "bebidas" && (
@@ -430,19 +428,21 @@ function PedidoPage() {
 
         {step === "comanda" && cfg && (
           <StepComanda
-            size={size!}
-            sizeLabel={cfg.label}
-            portion={cfg.portion}
+            cfg={cfg}
             plate={plate}
+            pratos={pratos}
             beverages={beverages}
+            bebidas={bebidas}
             foodTotal={foodTotal}
             beverageTotal={beverageTotal}
+            extraTotal={extraTotal}
             total={total}
             payment={payment}
             onPayment={setPayment}
             onBack={() => setStep("bebidas")}
             onConfirm={confirmOrder}
             loggedIn={!!user}
+            submitting={submitting}
           />
         )}
       </section>
@@ -477,33 +477,54 @@ function Stepper({ step }: { step: Step }) {
   );
 }
 
-function StepTamanho({ current, available, onSelect }: { current: SizeKey | null; available: SizeKey[]; onSelect: (s: SizeKey) => void }) {
+function StepTamanho({
+  modelos,
+  isLoading,
+  isError,
+  current,
+  onSelect,
+}: {
+  modelos: ModeloMarmita[];
+  isLoading: boolean;
+  isError: boolean;
+  current: number | null;
+  onSelect: (id: number) => void;
+}) {
   return (
     <div className="mt-8">
       <h1 className="text-3xl md:text-4xl font-bold">Qual o tamanho?</h1>
       <p className="text-muted-foreground mt-2">Escolha o tamanho do seu bento antes de montar.</p>
-      {available.length === 0 ? (
+      {isLoading && (
+        <p className="mt-8 text-center text-muted-foreground">Carregando tamanhos...</p>
+      )}
+      {isError && (
+        <p className="mt-8 text-center text-destructive">
+          Não foi possível carregar os tamanhos disponíveis.
+        </p>
+      )}
+      {!isLoading && !isError && modelos.length === 0 ? (
         <p className="mt-8 rounded-2xl border border-dashed border-border p-8 text-center text-muted-foreground">
           Nenhum tamanho está disponível no momento.
         </p>
       ) : (
         <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          {available.map((k) => {
-            const cfg = SIZES[k];
-            const active = current === k;
+          {modelos.map((m) => {
+            const active = current === m.id;
             return (
               <button
-                key={k}
-                onClick={() => onSelect(k)}
+                key={m.id}
+                onClick={() => onSelect(m.id)}
                 className={`text-left rounded-2xl border p-5 transition-all hover:shadow-[var(--shadow-soft)] ${
-                  active ? "border-primary bg-secondary" : "border-border bg-card hover:border-primary/50"
+                  active
+                    ? "border-primary bg-secondary"
+                    : "border-border bg-card hover:border-primary/50"
                 }`}
               >
-                <div className="text-2xl font-bold text-primary">
-                  {k === "Personalizado" ? "★" : k}
+                <div className="text-lg font-bold text-primary">{formatBRL(m.preco)}</div>
+                <div className="mt-2 font-semibold">{m.nome}</div>
+                <div className="text-xs text-muted-foreground mt-1">
+                  Até {m.limiteAcompanhamentos} porções de acompanhamento
                 </div>
-                <div className="mt-2 font-semibold">{cfg.label}</div>
-                <div className="text-xs text-muted-foreground mt-1">{cfg.desc}</div>
               </button>
             );
           })}
@@ -521,23 +542,27 @@ function StepBebidas({
   availableBeverages,
   availableExtras,
 }: {
-  beverages: Record<string, number>;
-  adj: (id: string, delta: number) => void;
-  extras: Record<string, number>;
-  adjExtra: (id: string, delta: number) => void;
-  availableBeverages: Beverage[];
-  availableExtras: Extra[];
+  beverages: Record<number, number>;
+  adj: (id: number, delta: number) => void;
+  extras: Record<number, number>;
+  adjExtra: (id: number, delta: number) => void;
+  availableBeverages: Produto[];
+  availableExtras: Produto[];
 }) {
   return (
     <div className="mt-6">
       <h1 className="text-2xl md:text-3xl font-bold">Bebidas e sobremesas</h1>
-      <p className="text-sm text-muted-foreground mt-1">Adicione complementos ao seu pedido (opcional).</p>
+      <p className="text-sm text-muted-foreground mt-1">
+        Adicione complementos ao seu pedido (opcional).
+      </p>
 
       {availableBeverages.length > 0 && (
         <>
-          <h2 className="mt-6 text-xs uppercase tracking-wider font-semibold text-muted-foreground">Bebidas</h2>
+          <h2 className="mt-6 text-xs uppercase tracking-wider font-semibold text-muted-foreground">
+            Bebidas
+          </h2>
           <div className="mt-3 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {availableBeverages.map((b: Beverage) => {
+            {availableBeverages.map((b) => {
               const qty = beverages[b.id] ?? 0;
               const active = qty > 0;
               return (
@@ -547,17 +572,23 @@ function StepBebidas({
                     active ? "border-primary bg-secondary/40" : "border-border bg-card"
                   }`}
                 >
-                  <img
-                    src={b.image}
-                    alt={b.name}
-                    width={80}
-                    height={80}
-                    loading="lazy"
-                    className="h-20 w-20 object-contain shrink-0"
-                  />
+                  {b.urlImagem ? (
+                    <img
+                      src={b.urlImagem}
+                      alt={b.nome}
+                      width={80}
+                      height={80}
+                      loading="lazy"
+                      className="h-20 w-20 object-contain shrink-0"
+                    />
+                  ) : (
+                    <span className="text-4xl shrink-0" aria-hidden>
+                      {getIngredientIcon(b)}
+                    </span>
+                  )}
                   <div className="flex-1 min-w-0">
-                    <div className="font-semibold truncate">{b.name}</div>
-                    <div className="text-sm text-primary font-bold">{formatBRL(b.price)}</div>
+                    <div className="font-semibold truncate">{b.nome}</div>
+                    <div className="text-sm text-primary font-bold">{formatBRL(b.preco)}</div>
                     <div className="mt-2 flex items-center gap-2">
                       <button
                         onClick={() => adj(b.id, -1)}
@@ -584,7 +615,9 @@ function StepBebidas({
 
       {availableExtras.length > 0 && (
         <>
-          <h2 className="mt-8 text-xs uppercase tracking-wider font-semibold text-muted-foreground">Sobremesas</h2>
+          <h2 className="mt-8 text-xs uppercase tracking-wider font-semibold text-muted-foreground">
+            Sobremesas
+          </h2>
           <div className="mt-3 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {availableExtras.map((e) => {
               const qty = extras[e.id] ?? 0;
@@ -596,11 +629,13 @@ function StepBebidas({
                     active ? "border-primary bg-secondary/40" : "border-border bg-card"
                   }`}
                 >
-                  <span className="text-4xl shrink-0" aria-hidden>{e.emoji}</span>
+                  <span className="text-4xl shrink-0" aria-hidden>
+                    {getIngredientIcon(e)}
+                  </span>
                   <div className="flex-1 min-w-0">
-                    <div className="font-semibold truncate">{e.name}</div>
-                    <div className="text-xs text-muted-foreground line-clamp-2">{e.description}</div>
-                    <div className="text-sm text-primary font-bold mt-1">{formatBRL(e.price)}</div>
+                    <div className="font-semibold truncate">{e.nome}</div>
+                    <div className="text-xs text-muted-foreground line-clamp-2">{e.descricao}</div>
+                    <div className="text-sm text-primary font-bold mt-1">{formatBRL(e.preco)}</div>
                     <div className="mt-2 flex items-center gap-2">
                       <button
                         onClick={() => adjExtra(e.id, -1)}
@@ -634,36 +669,38 @@ function StepBebidas({
   );
 }
 
-
-
 function StepComanda({
-  size,
-  sizeLabel,
-  portion,
+  cfg,
   plate,
+  pratos,
   beverages,
+  bebidas,
   foodTotal,
   beverageTotal,
+  extraTotal,
   total,
   payment,
   onPayment,
   onBack,
   onConfirm,
   loggedIn,
+  submitting,
 }: {
-  size: SizeKey;
-  sizeLabel: string;
-  portion: number;
+  cfg: ModeloMarmita;
   plate: PlateItem[];
-  beverages: Record<string, number>;
+  pratos: Acompanhamento[];
+  beverages: Record<number, number>;
+  bebidas: Produto[];
   foodTotal: number;
   beverageTotal: number;
+  extraTotal: number;
   total: number;
-  payment: PaymentMethod | null;
-  onPayment: (p: PaymentMethod) => void;
+  payment: MetodoPagamento | null;
+  onPayment: (p: MetodoPagamento) => void;
   onBack: () => void;
   onConfirm: () => void;
   loggedIn: boolean;
+  submitting: boolean;
 }) {
   return (
     <div className="mt-6">
@@ -675,24 +712,29 @@ function StepComanda({
           <h2 className="font-semibold">Resumo do pedido</h2>
           <div className="mt-3 text-sm">
             <div className="flex justify-between py-2 border-b border-border">
-              <span className="text-muted-foreground">Tamanho</span>
-              <span className="font-medium">{sizeLabel}</span>
+              <span className="text-muted-foreground">Marmita</span>
+              <span className="font-medium">
+                {cfg.nome} · {formatBRL(cfg.preco)}
+              </span>
             </div>
 
             <div className="pt-3">
-              <div className="text-xs uppercase tracking-wide text-muted-foreground mb-2">Pratos</div>
+              <div className="text-xs uppercase tracking-wide text-muted-foreground mb-2">
+                Pratos escolhidos
+              </div>
               <ul className="space-y-1.5">
                 {plate.map((p) => {
-                  const m = MENU.find((mm) => mm.id === p.id);
+                  const m = pratos.find((mm) => mm.id === p.id);
                   if (!m) return null;
-                  const unit = +(m.price * portion).toFixed(2);
                   return (
-                    <li key={p.id} className="flex justify-between text-sm">
-                      <span className="flex items-center gap-2">
-                        <span>{getIngredientIcon(m)}</span>
-                        <span>{p.qty}× {m.name}</span>
+                    <li
+                      key={p.id}
+                      className="flex items-center gap-2 text-sm text-muted-foreground"
+                    >
+                      <span>{getIngredientIcon(m)}</span>
+                      <span>
+                        {p.qty}× {m.nome}
                       </span>
-                      <span className="text-muted-foreground">{formatBRL(unit * p.qty)}</span>
                     </li>
                   );
                 })}
@@ -701,18 +743,22 @@ function StepComanda({
 
             {Object.keys(beverages).length > 0 && (
               <div className="pt-4">
-                <div className="text-xs uppercase tracking-wide text-muted-foreground mb-2">Bebidas</div>
+                <div className="text-xs uppercase tracking-wide text-muted-foreground mb-2">
+                  Bebidas e sobremesas
+                </div>
                 <ul className="space-y-1.5">
                   {Object.entries(beverages).map(([id, qty]) => {
-                    const b = BEVERAGES.find((x) => x.id === id);
+                    const b = bebidas.find((x) => x.id === Number(id));
                     if (!b) return null;
                     return (
                       <li key={id} className="flex justify-between text-sm">
                         <span className="flex items-center gap-2">
-                          <span>🥤</span>
-                          <span>{qty}× {b.name}</span>
+                          <span>{getIngredientIcon(b)}</span>
+                          <span>
+                            {qty}× {b.nome}
+                          </span>
                         </span>
-                        <span className="text-muted-foreground">{formatBRL(b.price * qty)}</span>
+                        <span className="text-muted-foreground">{formatBRL(b.preco * qty)}</span>
                       </li>
                     );
                   })}
@@ -722,20 +768,14 @@ function StepComanda({
 
             <div className="mt-4 pt-3 border-t border-border space-y-1 text-sm">
               <div className="flex justify-between">
-                <span className="text-muted-foreground">Pratos</span>
+                <span className="text-muted-foreground">Marmita</span>
                 <span>{formatBRL(foodTotal)}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-muted-foreground">Bebidas</span>
-                <span>{formatBRL(beverageTotal)}</span>
+                <span className="text-muted-foreground">Bebidas e sobremesas</span>
+                <span>{formatBRL(beverageTotal + extraTotal)}</span>
               </div>
             </div>
-
-            {size === "Personalizado" && (
-              <p className="mt-3 text-xs text-muted-foreground bg-secondary/50 rounded-lg p-2">
-                * Pedido personalizado: o preço final dos pratos é pesado no balcão a <strong>R$ 59,90/kg</strong>.
-              </p>
-            )}
           </div>
         </div>
 
@@ -765,8 +805,13 @@ function StepComanda({
             <span className="font-bold text-primary">{formatBRL(total)}</span>
           </div>
 
-          <Button onClick={onConfirm} className="w-full mt-4 rounded-full" size="lg" disabled={!payment}>
-            Confirmar pedido
+          <Button
+            onClick={onConfirm}
+            className="w-full mt-4 rounded-full"
+            size="lg"
+            disabled={!payment || submitting}
+          >
+            {submitting ? "Enviando..." : "Confirmar pedido"}
           </Button>
           <button
             onClick={onBack}
@@ -778,7 +823,9 @@ function StepComanda({
           {!loggedIn && (
             <p className="text-xs text-center text-muted-foreground mt-3">
               É necessário estar logado.{" "}
-              <Link to="/login" className="text-primary underline">Entrar</Link>
+              <Link to="/login" className="text-primary underline">
+                Entrar
+              </Link>
             </p>
           )}
         </aside>
